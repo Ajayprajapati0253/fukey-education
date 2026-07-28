@@ -1,0 +1,21 @@
+# Node
+**/node_modules/
+**/dist/
+
+# Environment
+**/.env
+
+# AI Tools
+**/.claude/
+**/.agents/
+**/.windsurf/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/

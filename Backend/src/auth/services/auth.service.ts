@@ -3,7 +3,7 @@ import {
   UnauthorizedException,
   ForbiddenException,
 } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { LoginDto } from '../dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -16,7 +16,7 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.users.findUnique({
       where: {
         email: dto.email,
       },
@@ -47,7 +47,7 @@ export class AuthService {
 
     // Ban check
 
-    if (user.is_banned) {
+    if (user.is_banned !== 'no') {
       throw new ForbiddenException('Your account has been banned');
     }
 
@@ -59,14 +59,14 @@ export class AuthService {
 
     // FCM token update
 
-    if (dto.fcm_token) {
-      await this.prisma.user.update({
+    if (dto.fcmToken) {
+      await this.prisma.users.update({
         where: {
           id: user.id,
         },
 
         data: {
-          fcm_token: dto.fcm_token,
+          fcm_token: dto.fcmToken,
         },
       });
     }

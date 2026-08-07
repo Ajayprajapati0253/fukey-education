@@ -3,100 +3,87 @@ import {
   UnauthorizedException,
   ForbiddenException,
 } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
-import { LoginDto } from '../dto/login.dto';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma/prisma.service';
+import { UserStatus } from './enums/user-status.enum';
+import { RecaptchaService } from './recaptcha.service';
+import { SettingsService } from '../settings/settings.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private recaptchaService: RecaptchaService,
+    private settingsService: SettingsService,
   ) {}
 
-  async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        email: dto.email,
-      },
-    });
+  async login(email: string, password: string, recaptchaToken?: string, fcmToken?: string) {
+    const setting = await this.settingsService.get();
 
-    // User not found
-    if (!user) {
-      throw new UnauthorizedException(
-        'Invalid credentials please check your email and password',
-      );
+    // Recaptcha check — mirrors Laravel's conditional rule based on setting
+    if (setting.recaptchaStatus === 'active') {
+      if (!recaptchaToken) {
+        throw new UnauthorizedException('Please complete the recaptcha to submit the form');
+      }
+      const isValid = await this.recaptchaService.verify(recaptchaToken);
+      if (!isValid) {
+        throw new UnauthorizedException('Recaptcha verification failed');
+      }
     }
 
-    // Password check
+    const user = await this.prisma.user.findUnique({ where: { email } });
 
-    const passwordMatch = await bcrypt.compare(dto.password, user.password);
-
-    if (!passwordMatch) {
-      throw new UnauthorizedException(
-        'Invalid credentials please check your email and password',
-      );
+    // Check credentials
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException('Invalid credentials please check your email and password');
     }
 
-    // Active check
-
-    if (user.status !== 'active') {
-      throw new ForbiddenException('Inactive account');
+    // Check active status
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('Inactive account');
     }
 
-    // Ban check
-
-    if (user.is_banned) {
+    // Check banned
+    if (user.isBanned) {
       throw new ForbiddenException('Your account has been banned');
     }
 
-    // Email verification
-
-    if (!user.email_verified_at) {
-      throw new ForbiddenException('Please verify your email');
+    // Check email verified
+    if (!user.emailVerifiedAt) {
+      throw new UnauthorizedException('Please verify your email');
     }
 
-    // FCM token update
-
-    if (dto.fcm_token) {
+    // Update FCM token if provided
+    if (fcmToken) {
       await this.prisma.user.update({
-        where: {
-          id: user.id,
-        },
-
-        data: {
-          fcm_token: dto.fcm_token,
-        },
+        where: { id: user.id },
+        data: { fcmToken },
       });
     }
 
-    // JWT Generate
+    // Move guest/session cart to DB — equivalent of sessionCartToDatabase()
+    // await this.cartService.mergeSessionCartToUser(user.id, sessionId);
 
-    const payload = {
-      sub: user.id,
-
-      email: user.email,
-
-      role: user.role,
-    };
-
-    const token = this.jwtService.sign(payload);
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const accessToken = this.jwtService.sign(payload);
 
     return {
-      message: 'Logged in successfully',
-
-      access_token: token,
-
+      accessToken,
       user: {
         id: user.id,
-
-        name: user.name,
-
         email: user.email,
-
         role: user.role,
       },
+      // Next.js frontend uses this to decide the redirect route
+      redirectTo: user.role === 'instructor' ? '/instructor/dashboard' : '/student/dashboard',
     };
+  }
+
+  async logout(userId: number) {
+    // With JWT, "logout" is typically handled by the client discarding the token,
+    // or by blacklisting the token/refresh-token server-side if you need forced invalidation.
+    return { message: 'Logged out successfully.' };
   }
 }

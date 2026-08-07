@@ -1,14 +1,2126 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
+model admins {
+  id                    BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name                  String    @db.VarChar(255)
+  email                 String    @unique(map: "admins_email_unique") @db.VarChar(255)
+  image                 String?   @db.VarChar(255)
+  password              String    @db.VarChar(255)
+  bio                   String?   @db.Text
+  status                String    @default("active") @db.VarChar(255)
+  created_at            DateTime? @db.Timestamp(0)
+  updated_at            DateTime? @db.Timestamp(0)
+  forget_password_token String?   @db.VarChar(255)
+}
+
+model ai_chat_messages {
+  id              BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+  thread_id       BigInt                @db.UnsignedBigInt
+  role            ai_chat_messages_role
+  message         String                @db.LongText
+  created_at      DateTime?             @db.Timestamp(0)
+  updated_at      DateTime?             @db.Timestamp(0)
+  ai_chat_threads ai_chat_threads       @relation(fields: [thread_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ai_chat_messages_thread_id_foreign")
+
+  @@index([thread_id], map: "ai_chat_messages_thread_id_foreign")
+}
+
+model ai_chat_threads {
+  id               BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id          BigInt             @db.UnsignedBigInt
+  title            String?            @db.VarChar(255)
+  created_at       DateTime?          @db.Timestamp(0)
+  updated_at       DateTime?          @db.Timestamp(0)
+  ai_chat_messages ai_chat_messages[]
+  users            users              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ai_chat_threads_user_id_foreign")
+
+  @@index([user_id], map: "ai_chat_threads_user_id_foreign")
+}
+
+model ai_knowledge_chunks {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  source     String    @db.VarChar(255)
+  content    String    @db.LongText
+  embedding  Json
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model announcements {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  course_id     BigInt    @db.UnsignedBigInt
+  instructor_id BigInt    @db.UnsignedBigInt
+  title         String    @db.VarChar(255)
+  announcement  String    @db.Text
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+}
+
+model badges {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  key            String    @db.VarChar(255)
+  image          String    @db.VarChar(255)
+  name           String    @db.VarChar(255)
+  description    String?   @db.Text
+  condition_from Int       @default(0)
+  condition_to   Int       @default(0)
+  status         Boolean   @default(true)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+}
+
+model banned_histories {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id     Int
+  subject     String?   @db.VarChar(255)
+  reasone     String?   @db.VarChar(255)
+  description String?   @db.Text
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model basic_payments {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  key        String    @db.VarChar(255)
+  value      String    @db.Text
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model bkash_p_g_models {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  key        String    @db.VarChar(255)
+  value      String    @db.Text
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model blog_categories {
+  id                         BigInt                       @id @default(autoincrement()) @db.UnsignedBigInt
+  slug                       String                       @db.VarChar(255)
+  position                   Int                          @default(0)
+  parent_id                  String?                      @db.VarChar(255)
+  status                     Boolean                      @default(true)
+  created_at                 DateTime?                    @db.Timestamp(0)
+  updated_at                 DateTime?                    @db.Timestamp(0)
+  blog_category_translations blog_category_translations[]
+}
+
+model blog_category_translations {
+  id                BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
+  blog_category_id  BigInt          @db.UnsignedBigInt
+  lang_code         String          @db.VarChar(255)
+  title             String          @db.VarChar(255)
+  short_description String?         @db.VarChar(255)
+  created_at        DateTime?       @db.Timestamp(0)
+  updated_at        DateTime?       @db.Timestamp(0)
+  blog_categories   blog_categories @relation(fields: [blog_category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "blog_category_translations_blog_category_id_foreign")
+
+  @@index([blog_category_id], map: "blog_category_translations_blog_category_id_foreign")
+}
+
+model blog_comments {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  blog_id    BigInt    @db.UnsignedBigInt
+  user_id    BigInt    @db.UnsignedBigInt
+  name       String?   @db.VarChar(255)
+  email      String?   @db.VarChar(255)
+  phone      String?   @db.VarChar(255)
+  comment    String    @db.Text
+  status     Boolean   @default(false)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model blog_translations {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  blog_id         BigInt    @db.UnsignedBigInt
+  lang_code       String    @db.VarChar(255)
+  title           String    @db.VarChar(255)
+  description     String    @db.LongText
+  seo_title       String?   @db.Text
+  seo_description String?   @db.Text
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+}
+
+model blogs {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  admin_id         BigInt    @default(0) @db.UnsignedBigInt
+  blog_category_id BigInt    @db.UnsignedBigInt
+  slug             String    @db.Text
+  image            String?   @db.VarChar(255)
+  views            BigInt    @default(0)
+  show_homepage    Boolean   @default(false)
+  is_popular       Boolean   @default(false)
+  tags             String?   @db.Text
+  status           Boolean   @default(false)
+  created_at       DateTime? @db.Timestamp(0)
+  updated_at       DateTime? @db.Timestamp(0)
+}
+
+model brands {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  image      String    @db.VarChar(255)
+  url        String    @db.VarChar(255)
+  status     Boolean   @default(true)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model career_applications {
+  id              BigInt                     @id @default(autoincrement()) @db.UnsignedBigInt
+  career_id       BigInt                     @db.UnsignedBigInt
+  name            String                     @db.VarChar(255)
+  email           String                     @db.VarChar(255)
+  phone           String                     @db.VarChar(255)
+  experience      String?                    @db.VarChar(255)
+  current_company String?                    @db.VarChar(255)
+  expected_salary String?                    @db.VarChar(255)
+  resume          String                     @db.VarChar(255)
+  cover_letter    String?                    @db.LongText
+  status          career_applications_status @default(pending)
+  created_at      DateTime?                  @db.Timestamp(0)
+  updated_at      DateTime?                  @db.Timestamp(0)
+  careers         careers                    @relation(fields: [career_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "career_applications_career_id_foreign")
+
+  @@index([career_id], map: "career_applications_career_id_foreign")
+}
+
+model careers {
+  id                  BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+  title               String                @db.VarChar(255)
+  slug                String                @unique(map: "careers_slug_unique") @db.VarChar(255)
+  department          String?               @db.VarChar(255)
+  location            String?               @db.VarChar(255)
+  employment_type     String?               @db.VarChar(255)
+  experience          String?               @db.VarChar(255)
+  salary              String?               @db.VarChar(255)
+  vacancies           Int                   @default(1) @db.UnsignedInt
+  description         String?               @db.LongText
+  requirements        String?               @db.LongText
+  responsibilities    String?               @db.LongText
+  benefits            String?               @db.LongText
+  status              careers_status        @default(draft)
+  is_featured         Boolean               @default(false)
+  is_urgent           Boolean               @default(false)
+  is_remote           Boolean               @default(false)
+  published_at        DateTime?             @db.Timestamp(0)
+  created_at          DateTime?             @db.Timestamp(0)
+  updated_at          DateTime?             @db.Timestamp(0)
+  deleted_at          DateTime?             @db.Timestamp(0)
+  career_applications career_applications[]
+}
+
+model carts {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt    @db.UnsignedBigInt
+  course_id  BigInt?   @db.UnsignedBigInt
+  qty        Int       @default(1)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  note_id    BigInt?   @db.UnsignedBigInt
+  type       String?   @default("course") @db.VarChar(20)
+  courses    courses?  @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "carts_course_id_foreign")
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "carts_user_id_foreign")
+
+  @@index([course_id], map: "carts_course_id_foreign")
+  @@index([user_id], map: "carts_user_id_foreign")
+}
+
+model certificate_builder_items {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  element_id String?   @db.VarChar(255)
+  x_position String?   @db.VarChar(255)
+  y_position String?   @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model certificate_builders {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  background  String?   @db.VarChar(255)
+  title       String?   @db.VarChar(255)
+  sub_title   String?   @db.VarChar(255)
+  description String?   @db.Text
+  signature   String?   @db.VarChar(255)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model cities {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  state_id   BigInt    @db.UnsignedBigInt
+  status     Boolean   @default(true)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  states     states    @relation(fields: [state_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cities_state_id_foreign")
+
+  @@index([state_id], map: "cities_state_id_foreign")
+}
+
+model class_subjects {
+  id         BigInt    @id @default(autoincrement())
+  class_id   String?   @db.VarChar(10)
+  subject_id BigInt?
+  subjects   subjects? @relation(fields: [subject_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "class_subjects_ibfk_1")
+
+  @@index([subject_id], map: "subject_id")
+}
+
+model configurations {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  config     String    @db.VarChar(255)
+  value      String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model contact_messages {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  email      String?   @db.VarChar(255)
+  phone      String?   @db.VarChar(255)
+  subject    String?   @db.VarChar(255)
+  message    String    @db.Text
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model contact_sections {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  address    String?   @db.VarChar(255)
+  phone_one  String?   @db.VarChar(255)
+  phone_two  String?   @db.VarChar(255)
+  email_one  String?   @db.VarChar(255)
+  email_two  String?   @db.VarChar(255)
+  map        String?   @db.Text
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model countries {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  status     Boolean   @default(true)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  states     states[]
+}
+
+model coupon_histories {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  author_id       Int       @default(0)
+  user_id         Int       @default(0)
+  coupon_code     String    @db.VarChar(255)
+  coupon_id       Int
+  discount_amount Decimal   @db.Decimal(8, 2)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+}
+
+model coupons {
+  id               BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  author_id        Int            @default(0)
+  coupon_code      String         @db.VarChar(255)
+  offer_percentage Decimal        @db.Decimal(8, 2)
+  expired_date     String         @db.VarChar(255)
+  status           coupons_status @default(active)
+  created_at       DateTime?      @db.Timestamp(0)
+  updated_at       DateTime?      @db.Timestamp(0)
+  min_price        Decimal        @db.Decimal(8, 2)
+}
+
+model course_categories {
+  id                                                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  slug                                               String?   @db.VarChar(255)
+  order                                              Int?
+  icon                                               String?   @db.VarChar(255)
+  parent_id                                          BigInt?   @db.UnsignedBigInt
+  show_at_trending                                   Boolean?
+  status                                             Boolean   @default(true)
+  created_at                                         DateTime? @db.Timestamp(0)
+  updated_at                                         DateTime? @db.Timestamp(0)
+  ebooks                                             ebooks[]
+  notes_notes_class_category_idTocourse_categories   notes[]   @relation("notes_class_category_idTocourse_categories")
+  notes_notes_subject_category_idTocourse_categories notes[]   @relation("notes_subject_category_idTocourse_categories")
+}
+
+model course_category_translations {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  course_category_id BigInt    @db.UnsignedBigInt
+  lang_code          String    @db.VarChar(255)
+  name               String    @db.VarChar(255)
+  created_at         DateTime? @db.Timestamp(0)
+  updated_at         DateTime? @db.Timestamp(0)
+}
+
+model course_chapter_items {
+  id                     BigInt                     @id @default(autoincrement()) @db.UnsignedBigInt
+  instructor_id          BigInt                     @db.UnsignedBigInt
+  chapter_id             BigInt                     @db.UnsignedBigInt
+  type                   course_chapter_items_type? @default(lesson)
+  order                  Int
+  created_at             DateTime?                  @db.Timestamp(0)
+  updated_at             DateTime?                  @db.Timestamp(0)
+  course_chapters        course_chapters            @relation(fields: [chapter_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "course_chapter_items_chapter_id_foreign")
+  users                  users                      @relation(fields: [instructor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "course_chapter_items_instructor_id_foreign")
+  course_chapter_lessons course_chapter_lessons[]
+
+  @@index([chapter_id], map: "course_chapter_items_chapter_id_foreign")
+  @@index([instructor_id], map: "course_chapter_items_instructor_id_foreign")
+}
+
+model course_chapter_lessons {
+  id                   BigInt                            @id @default(autoincrement()) @db.UnsignedBigInt
+  title                String                            @db.VarChar(255)
+  slug                 String?                           @db.VarChar(255)
+  description          String?                           @db.Text
+  instructor_id        BigInt                            @db.UnsignedBigInt
+  course_id            BigInt                            @db.UnsignedBigInt
+  chapter_id           BigInt                            @db.UnsignedBigInt
+  chapter_item_id      BigInt                            @db.UnsignedBigInt
+  file_path            String?                           @db.Text
+  storage              course_chapter_lessons_storage?   @default(upload)
+  volume               String?                           @db.VarChar(255)
+  duration             String?                           @db.VarChar(255)
+  file_type            course_chapter_lessons_file_type? @default(video)
+  downloadable         Boolean                           @default(true)
+  order                Int?
+  is_free              Boolean?                          @default(false)
+  status               course_chapter_lessons_status     @default(active)
+  created_at           DateTime?                         @db.Timestamp(0)
+  updated_at           DateTime?                         @db.Timestamp(0)
+  course_chapters      course_chapters                   @relation(fields: [chapter_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "course_chapter_lessons_chapter_id_foreign")
+  course_chapter_items course_chapter_items              @relation(fields: [chapter_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "course_chapter_lessons_chapter_item_id_foreign")
+  users                users                             @relation(fields: [instructor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "course_chapter_lessons_instructor_id_foreign")
+  course_live_classes  course_live_classes[]
+  lesson_recordings    lesson_recordings[]
+
+  @@index([chapter_id], map: "course_chapter_lessons_chapter_id_foreign")
+  @@index([chapter_item_id], map: "course_chapter_lessons_chapter_item_id_foreign")
+  @@index([instructor_id], map: "course_chapter_lessons_instructor_id_foreign")
+}
+
+model course_chapters {
+  id                     BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
+  title                  String                   @db.VarChar(255)
+  instructor_id          BigInt                   @db.UnsignedBigInt
+  course_id              BigInt                   @db.UnsignedBigInt
+  order                  Int
+  status                 course_chapters_status   @default(active)
+  created_at             DateTime?                @db.Timestamp(0)
+  updated_at             DateTime?                @db.Timestamp(0)
+  course_chapter_items   course_chapter_items[]
+  course_chapter_lessons course_chapter_lessons[]
+  courses                courses                  @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "course_chapters_course_id_foreign")
+
+  @@index([course_id], map: "course_chapters_course_id_foreign")
+}
+
+model course_delete_requests {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  course_id  BigInt    @db.UnsignedBigInt
+  message    String    @db.Text
+  status     Boolean   @default(false)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model course_languages {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  status     Boolean   @default(true)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model course_level_translations {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  course_level_id BigInt    @db.UnsignedBigInt
+  lang_code       String    @db.VarChar(255)
+  name            String    @db.VarChar(255)
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+}
+
+model course_levels {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  slug       String    @db.VarChar(255)
+  status     Boolean   @default(true)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model course_live_classes {
+  id                      BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
+  lesson_id               BigInt                   @db.UnsignedBigInt
+  start_time              String?                  @db.VarChar(255)
+  start_notification_sent Boolean                  @default(false)
+  type                    course_live_classes_type @default(zoom)
+  is_recurring            Boolean                  @default(false)
+  recurring_days          Json?
+  recurring_type          String?                  @db.VarChar(255)
+  recurring_interval      Int                      @default(1)
+  recurring_until         DateTime?                @db.Timestamp(0)
+  parent_live_class_id    BigInt?                  @db.UnsignedBigInt
+  is_generated_instance   Boolean                  @default(false)
+  meeting_id              String?                  @db.VarChar(255)
+  password                String?                  @db.VarChar(255)
+  join_url                String?                  @db.VarChar(255)
+  created_at              DateTime?                @db.Timestamp(0)
+  updated_at              DateTime?                @db.Timestamp(0)
+  course_chapter_lessons  course_chapter_lessons   @relation(fields: [lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "course_live_classes_lesson_id_foreign")
+
+  @@index([is_generated_instance], map: "course_live_classes_is_generated_instance_index")
+  @@index([is_recurring], map: "course_live_classes_is_recurring_index")
+  @@index([lesson_id], map: "course_live_classes_lesson_id_foreign")
+  @@index([parent_live_class_id], map: "course_live_classes_parent_live_class_id_index")
+}
+
+model course_partner_instructors {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  course_id     BigInt    @db.UnsignedBigInt
+  instructor_id BigInt    @db.UnsignedBigInt
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+}
+
+model course_progress {
+  id         BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt               @db.UnsignedBigInt
+  course_id  BigInt?              @db.UnsignedBigInt
+  chapter_id BigInt?              @db.UnsignedBigInt
+  lesson_id  BigInt?              @db.UnsignedBigInt
+  watched    Boolean              @default(false)
+  current    Boolean              @default(false)
+  type       course_progress_type @default(lesson)
+  created_at DateTime?            @db.Timestamp(0)
+  updated_at DateTime?            @db.Timestamp(0)
+}
+
+model course_reviews {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  course_id  BigInt    @db.UnsignedBigInt
+  user_id    BigInt    @db.UnsignedBigInt
+  rating     Int
+  review     String    @db.Text
+  status     Boolean   @default(false)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model course_selected_filter_options {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  course_id        BigInt    @db.UnsignedBigInt
+  filter_id        BigInt    @db.UnsignedBigInt
+  filter_option_id BigInt    @db.UnsignedBigInt
+  created_at       DateTime? @db.Timestamp(0)
+  updated_at       DateTime? @db.Timestamp(0)
+}
+
+model course_selected_languages {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  course_id   BigInt    @db.UnsignedBigInt
+  language_id BigInt    @db.UnsignedBigInt
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model course_selected_levels {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  course_id  BigInt    @db.UnsignedBigInt
+  level_id   BigInt    @db.UnsignedBigInt
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model courses {
+  id                   BigInt                     @id @default(autoincrement()) @db.UnsignedBigInt
+  instructor_id        BigInt                     @db.UnsignedBigInt
+  category_id          BigInt?                    @db.UnsignedBigInt
+  type                 courses_type               @default(course)
+  course_access_type   courses_course_access_type @default(paid)
+  title                String                     @db.VarChar(255)
+  slug                 String                     @db.VarChar(255)
+  seo_description      String?                    @db.VarChar(255)
+  start_date           DateTime?                  @db.Date
+  duration             Int?
+  timezone             String?                    @db.VarChar(255)
+  thumbnail            String?                    @db.VarChar(255)
+  demo_video_storage   courses_demo_video_storage @default(upload)
+  demo_video_source    String?                    @db.Text
+  description          String?                    @db.Text
+  capacity             Int?
+  price                Float?
+  discount             Float?
+  certificate          Boolean                    @default(false)
+  downloadable         Boolean                    @default(false)
+  partner_instructor   Boolean                    @default(false)
+  qna                  Boolean                    @default(false)
+  message_for_reviewer String?                    @db.Text
+  status               courses_status             @default(is_draft)
+  is_approved          courses_is_approved        @default(pending)
+  created_at           DateTime?                  @db.Timestamp(0)
+  updated_at           DateTime?                  @db.Timestamp(0)
+  display_students     Int?
+  display_rating       Decimal?                   @db.Decimal(2, 1)
+  carts                carts[]
+  course_chapters      course_chapters[]
+  ebooks               ebooks[]
+  favorite_course_user favorite_course_user[]
+  live_classes         live_classes[]
+}
+
+model crypto_p_g {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  key        String    @db.VarChar(255)
+  value      String    @db.Text
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model custom_addons {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String    @db.VarChar(255)
+  slug        String    @db.VarChar(255)
+  is_default  Boolean   @default(false)
+  isPaid      Boolean   @default(true)
+  description String?   @db.Text
+  author      Json?
+  options     Json?
+  icon        String?   @db.VarChar(255)
+  license     String?   @db.VarChar(255)
+  url         String?   @db.VarChar(255)
+  version     String?   @db.VarChar(255)
+  last_update DateTime? @db.Date
+  status      Boolean   @default(false)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+
+  @@index([name], map: "custom_addons_name_index")
+  @@index([status], map: "idx_custom_addons_status")
+}
+
+model custom_codes {
+  id                BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  css               String?   @db.Text
+  javascript        String?   @db.Text
+  header_javascript String?   @db.Text
+  created_at        DateTime? @db.Timestamp(0)
+  updated_at        DateTime? @db.Timestamp(0)
+}
+
+model custom_page_translations {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  custom_page_id BigInt    @db.UnsignedBigInt
+  lang_code      String    @db.VarChar(255)
+  name           String?   @db.VarChar(255)
+  content        String?   @db.Text
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+}
+
+model custom_pages {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  slug       String    @db.VarChar(255)
+  status     Boolean
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model custom_paginations {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  section_name String    @db.VarChar(255)
+  item_qty     Int       @default(1)
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model demo_classes {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  title              String    @db.VarChar(255)
+  description        String?   @db.Text
+  course_category_id BigInt    @db.UnsignedBigInt
+  language           String    @db.VarChar(255)
+  thumbnail          String?   @db.VarChar(255)
+  video_url          String    @db.VarChar(255)
+  duration           Int?
+  is_active          Boolean   @default(true)
+  created_at         DateTime? @db.Timestamp(0)
+  updated_at         DateTime? @db.Timestamp(0)
+}
+
+model ebooks {
+  id                BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  category_id       BigInt?            @db.UnsignedBigInt
+  sub_subject       String?            @db.VarChar(255)
+  course_id         BigInt?            @db.UnsignedBigInt
+  title             String             @db.VarChar(255)
+  slug              String             @unique(map: "ebooks_slug_unique") @db.VarChar(255)
+  language          String             @db.VarChar(255)
+  cover_image       String?            @db.VarChar(255)
+  pdf_path          String             @db.VarChar(255)
+  description       String?            @db.LongText
+  status            Boolean            @default(true)
+  download_count    Int                @default(0)
+  created_at        DateTime?          @db.Timestamp(0)
+  updated_at        DateTime?          @db.Timestamp(0)
+  class             Int?
+  subject           String?            @db.VarChar(50)
+  course_categories course_categories? @relation(fields: [category_id], references: [id], onUpdate: NoAction, map: "ebooks_category_id_foreign")
+  courses           courses?           @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ebooks_course_id_foreign")
+
+  @@index([category_id], map: "ebooks_category_id_foreign")
+  @@index([course_id], map: "ebooks_course_id_foreign")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model ebooks_backup {
+  id             BigInt    @default(0) @db.UnsignedBigInt
+  category_id    BigInt?   @db.UnsignedBigInt
+  course_id      BigInt?   @db.UnsignedBigInt
+  title          String    @db.VarChar(255)
+  slug           String    @db.VarChar(255)
+  language       String    @db.VarChar(255)
+  cover_image    String?   @db.VarChar(255)
+  pdf_path       String    @db.VarChar(255)
+  description    String?   @db.LongText
+  status         Boolean   @default(true)
+  download_count Int       @default(0)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  @@ignore
+}
+
+model email_templates {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  subject    String    @db.VarChar(255)
+  message    String    @db.LongText
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model enrollments {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  order_id   BigInt    @db.UnsignedBigInt
+  user_id    BigInt    @db.UnsignedBigInt
+  course_id  BigInt    @db.UnsignedBigInt
+  has_access Boolean   @default(false)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  orders     orders    @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "enrollments_order_id_foreign")
+
+  @@unique([user_id, course_id], map: "enrollments_user_id_course_id_unique")
+  @@index([order_id], map: "enrollments_order_id_foreign")
+}
+
+model failed_jobs {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid       String   @unique(map: "failed_jobs_uuid_unique") @db.VarChar(255)
+  connection String   @db.Text
+  queue      String   @db.Text
+  payload    String   @db.LongText
+  exception  String   @db.LongText
+  failed_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+model faq_translations {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  faq_id     BigInt    @db.UnsignedBigInt
+  lang_code  String    @db.VarChar(255)
+  question   String?   @db.VarChar(255)
+  answer     String?   @db.Text
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model faqs {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  status     Boolean   @default(true)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model favorite_course_user {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt    @db.UnsignedBigInt
+  course_id  BigInt    @db.UnsignedBigInt
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  courses    courses   @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "favorite_course_user_course_id_foreign")
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "favorite_course_user_user_id_foreign")
+
+  @@index([course_id], map: "favorite_course_user_course_id_foreign")
+  @@index([user_id], map: "favorite_course_user_user_id_foreign")
+}
+
+model featured_course_sections {
+  id                    BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  all_category          Int?
+  all_category_ids      String?   @db.Text
+  all_category_status   Boolean   @default(true)
+  category_one          Int?
+  category_one_ids      String?   @db.Text
+  category_one_status   Boolean   @default(true)
+  category_two          Int?
+  category_two_ids      String?   @db.Text
+  category_two_status   Boolean   @default(true)
+  category_three        Int?
+  category_three_ids    String?   @db.Text
+  category_three_status Boolean   @default(true)
+  category_four         Int?
+  category_four_ids     String?   @db.Text
+  category_four_status  Boolean   @default(true)
+  category_five         Int?
+  category_five_ids     String?   @db.Text
+  category_five_status  Boolean   @default(true)
+  created_at            DateTime? @db.Timestamp(0)
+  updated_at            DateTime? @db.Timestamp(0)
+}
+
+model featured_instructor_translations {
+  id                             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  featured_instructor_section_id BigInt    @default(1) @db.UnsignedBigInt
+  lang_code                      String    @db.VarChar(255)
+  title                          String?   @db.VarChar(255)
+  sub_title                      String?   @db.VarChar(255)
+  button_text                    String?   @db.VarChar(255)
+  created_at                     DateTime? @db.Timestamp(0)
+  updated_at                     DateTime? @db.Timestamp(0)
+}
+
+model featured_instructors {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  button_url     String?   @db.VarChar(255)
+  instructor_ids Json?
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+}
+
+model footer_settings {
+  id                BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  logo              String?   @db.VarChar(255)
+  footer_text       String?   @db.VarChar(255)
+  address           String?   @db.VarChar(255)
+  phone             String?   @db.VarChar(255)
+  phone_one         String?   @db.VarChar(255)
+  phone_two         String?   @db.VarChar(255)
+  get_in_touch_text String?   @db.VarChar(255)
+  google_play_link  String?   @db.VarChar(255)
+  apple_store_link  String?   @db.VarChar(255)
+  created_at        DateTime? @db.Timestamp(0)
+  updated_at        DateTime? @db.Timestamp(0)
+}
+
+model free_course_categories {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  slug             String?   @db.VarChar(255)
+  order            Int?
+  icon             String?   @db.VarChar(255)
+  parent_id        BigInt?   @db.UnsignedBigInt
+  show_at_trending Boolean?
+  status           Boolean   @default(true)
+  created_at       DateTime? @db.Timestamp(0)
+  updated_at       DateTime? @db.Timestamp(0)
+}
+
+model free_course_category_translations {
+  id                      BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  free_course_category_id BigInt    @db.UnsignedBigInt
+  lang_code               String    @db.VarChar(255)
+  name                    String    @db.VarChar(255)
+  created_at              DateTime? @db.Timestamp(0)
+  updated_at              DateTime? @db.Timestamp(0)
+}
+
+model free_course_chapter_items {
+  id            BigInt                         @id @default(autoincrement()) @db.UnsignedBigInt
+  instructor_id BigInt                         @db.UnsignedBigInt
+  chapter_id    BigInt                         @db.UnsignedBigInt
+  type          free_course_chapter_items_type @default(lesson)
+  order         Int
+  created_at    DateTime?                      @db.Timestamp(0)
+  updated_at    DateTime?                      @db.Timestamp(0)
+}
+
+model free_course_chapter_lessons {
+  id              BigInt                                @id @default(autoincrement()) @db.UnsignedBigInt
+  title           String                                @db.VarChar(255)
+  slug            String?                               @db.VarChar(255)
+  description     String?                               @db.Text
+  instructor_id   BigInt                                @db.UnsignedBigInt
+  free_course_id  BigInt                                @db.UnsignedBigInt
+  chapter_id      BigInt                                @db.UnsignedBigInt
+  chapter_item_id BigInt                                @db.UnsignedBigInt
+  file_path       String?                               @db.Text
+  storage         free_course_chapter_lessons_storage   @default(upload)
+  volume          String?                               @db.VarChar(255)
+  duration        String?                               @db.VarChar(255)
+  file_type       free_course_chapter_lessons_file_type @default(video)
+  downloadable    Boolean                               @default(true)
+  order           Int?
+  is_free         Boolean?                              @default(false)
+  status          free_course_chapter_lessons_status    @default(active)
+  created_at      DateTime?                             @db.Timestamp(0)
+  updated_at      DateTime?                             @db.Timestamp(0)
+}
+
+model free_course_chapters {
+  id             BigInt                      @id @default(autoincrement()) @db.UnsignedBigInt
+  title          String                      @db.VarChar(255)
+  instructor_id  BigInt                      @db.UnsignedBigInt
+  free_course_id BigInt                      @db.UnsignedBigInt
+  order          Int
+  status         free_course_chapters_status @default(active)
+  created_at     DateTime?                   @db.Timestamp(0)
+  updated_at     DateTime?                   @db.Timestamp(0)
+}
+
+model free_course_delete_requests {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  free_course_id BigInt    @db.UnsignedBigInt
+  message        String    @db.Text
+  status         Boolean   @default(false)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+}
+
+model free_course_enrollments {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id        BigInt    @db.UnsignedBigInt
+  free_course_id BigInt    @db.UnsignedBigInt
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  @@unique([user_id, free_course_id], map: "free_course_enrollments_user_id_free_course_id_unique")
+}
+
+model free_course_languages {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  status     Boolean   @default(true)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model free_course_level_translations {
+  id                   BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  free_course_level_id BigInt    @db.UnsignedBigInt
+  lang_code            String    @db.VarChar(255)
+  name                 String    @db.VarChar(255)
+  created_at           DateTime? @db.Timestamp(0)
+  updated_at           DateTime? @db.Timestamp(0)
+}
+
+model free_course_levels {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  slug       String    @db.VarChar(255)
+  status     Boolean   @default(true)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model free_course_partner_instructors {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  free_course_id BigInt    @db.UnsignedBigInt
+  instructor_id  BigInt    @db.UnsignedBigInt
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+}
+
+model free_course_reviews {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  free_course_id BigInt    @db.UnsignedBigInt
+  user_id        BigInt    @db.UnsignedBigInt
+  rating         Int
+  review         String    @db.Text
+  status         Boolean   @default(false)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+}
+
+model free_course_selected_languages {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  free_course_id BigInt    @db.UnsignedBigInt
+  language_id    BigInt    @db.UnsignedBigInt
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+}
+
+model free_course_selected_levels {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  free_course_id BigInt    @db.UnsignedBigInt
+  level_id       BigInt    @db.UnsignedBigInt
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+}
+
+model free_courses {
+  id                   BigInt                          @id @default(autoincrement()) @db.UnsignedBigInt
+  instructor_id        BigInt                          @db.UnsignedBigInt
+  category_id          BigInt?                         @db.UnsignedBigInt
+  title                String                          @db.VarChar(255)
+  slug                 String                          @db.VarChar(255)
+  seo_description      String?                         @db.VarChar(255)
+  start_date           DateTime?                       @db.Date
+  duration             Int?
+  thumbnail            String?                         @db.VarChar(255)
+  demo_video_storage   free_courses_demo_video_storage @default(upload)
+  demo_video_source    String?                         @db.Text
+  youtube_video_id     String?                         @db.VarChar(255)
+  is_live              Boolean                         @default(false)
+  description          String?                         @db.Text
+  partner_instructor   Boolean                         @default(false)
+  qna                  Boolean                         @default(false)
+  message_for_reviewer String?                         @db.Text
+  status               free_courses_status             @default(is_draft)
+  is_approved          free_courses_is_approved        @default(pending)
+  created_at           DateTime?                       @db.Timestamp(0)
+  updated_at           DateTime?                       @db.Timestamp(0)
+  deleted_at           DateTime?                       @db.Timestamp(0)
+}
+
+model homes {
+  id         BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  slug       String     @unique(map: "homes_slug_unique") @db.VarChar(255)
+  created_at DateTime?  @db.Timestamp(0)
+  updated_at DateTime?  @db.Timestamp(0)
+  sections   sections[]
+}
+
+model instructor_request_setting_translations {
+  id                            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  instructor_request_setting_id BigInt    @db.UnsignedBigInt
+  lang_code                     String    @db.VarChar(255)
+  instructions                  String?   @db.VarChar(255)
+  created_at                    DateTime? @db.Timestamp(0)
+  updated_at                    DateTime? @db.Timestamp(0)
+}
+
+model instructor_request_settings {
+  id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  need_certificate   Boolean   @default(true)
+  need_identity_scan Boolean   @default(true)
+  bank_information   String?   @db.Text
+  created_at         DateTime? @db.Timestamp(0)
+  updated_at         DateTime? @db.Timestamp(0)
+}
+
+model instructor_requests {
+  id                 BigInt                     @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id            BigInt                     @db.UnsignedBigInt
+  status             instructor_requests_status @default(pending)
+  certificate        String?                    @db.Text
+  identity_scan      String?                    @db.Text
+  payout_account     String?                    @db.VarChar(255)
+  payout_information String?                    @db.Text
+  extra_information  String?                    @db.Text
+  created_at         DateTime?                  @db.Timestamp(0)
+  updated_at         DateTime?                  @db.Timestamp(0)
+}
+
+model jitsi_settings {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  instructor_id BigInt    @db.UnsignedBigInt
+  api_key       String    @db.VarChar(255)
+  app_id        String    @db.VarChar(255)
+  permissions   String?   @db.Text
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+  users         users     @relation(fields: [instructor_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "jitsi_settings_instructor_id_foreign")
+
+  @@index([instructor_id], map: "jitsi_settings_instructor_id_foreign")
+}
+
+model jobs {
+  id           BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  queue        String @db.VarChar(255)
+  payload      String @db.LongText
+  attempts     Int    @db.UnsignedTinyInt
+  reserved_at  Int?   @db.UnsignedInt
+  available_at Int    @db.UnsignedInt
+  created_at   Int    @db.UnsignedInt
+
+  @@index([queue], map: "jobs_queue_index")
+}
+
+model languages {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @unique(map: "languages_name_unique") @db.VarChar(255)
+  code       String    @unique(map: "languages_code_unique") @db.VarChar(255)
+  icon       String?   @db.VarChar(255)
+  direction  String    @default("ltr") @db.VarChar(255)
+  status     String    @default("1") @db.VarChar(255)
+  is_default String    @default("0") @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model lesson_questions {
+  id                   BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id              BigInt           @db.UnsignedBigInt
+  course_id            BigInt           @db.UnsignedBigInt
+  lesson_id            BigInt           @db.UnsignedBigInt
+  question_title       String           @db.VarChar(255)
+  question_description String           @db.Text
+  created_at           DateTime?        @db.Timestamp(0)
+  updated_at           DateTime?        @db.Timestamp(0)
+  seen                 Boolean          @default(false)
+  lesson_replies       lesson_replies[]
+}
+
+model lesson_recordings {
+  id                     BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
+  lesson_id              BigInt                 @db.UnsignedBigInt
+  meeting_id             String                 @db.VarChar(255)
+  file_path              String                 @unique(map: "uniq_file_path", length: 255) @db.Text
+  recorded_at            DateTime?              @db.Timestamp(0)
+  duration               Int?
+  file_size              BigInt?
+  created_at             DateTime?              @db.Timestamp(0)
+  updated_at             DateTime?              @db.Timestamp(0)
+  live_class_id          BigInt?
+  course_id              BigInt?
+  instructor_id          BigInt?
+  recording_title        String?                @db.VarChar(255)
+  course_chapter_lessons course_chapter_lessons @relation(fields: [lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lesson_recordings_lesson_id_foreign")
+
+  @@index([lesson_id], map: "lesson_recordings_lesson_id_index")
+  @@index([meeting_id], map: "lesson_recordings_meeting_id_index")
+}
+
+model lesson_replies {
+  id               BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  question_id      BigInt           @db.UnsignedBigInt
+  user_id          BigInt           @db.UnsignedBigInt
+  reply            String           @db.Text
+  created_at       DateTime?        @db.Timestamp(0)
+  updated_at       DateTime?        @db.Timestamp(0)
+  lesson_questions lesson_questions @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lesson_replies_question_id_foreign")
+
+  @@index([question_id], map: "lesson_replies_question_id_foreign")
+}
+
+model live_classes {
+  id                      BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+  title                   String?               @db.VarChar(255)
+  topic_title             String?               @db.VarChar(255)
+  instructor_id           BigInt                @db.UnsignedBigInt
+  course_id               BigInt?               @db.UnsignedBigInt
+  meeting_id              String                @unique(map: "live_classes_meeting_id_unique") @db.VarChar(255)
+  meeting_url             String?               @db.VarChar(255)
+  meeting_password        String?               @db.VarChar(255)
+  moderator_token         String?               @db.VarChar(255)
+  moderator_url           String?               @db.VarChar(255)
+  thumbnail               String?               @db.VarChar(255)
+  description             String?               @db.Text
+  start_time              DateTime              @db.DateTime(0)
+  duration                Int                   @default(60)
+  is_recurring            Boolean               @default(false)
+  recurring_days          Json?
+  recurring_time          DateTime?             @db.Time(0)
+  end_date                DateTime?             @db.Date
+  meeting_started         Boolean               @default(false)
+  status                  Boolean               @default(true)
+  platform                live_classes_platform @default(jitsi)
+  youtube_video_id        String?               @db.VarChar(255)
+  youtube_broadcast_id    String?               @db.VarChar(255)
+  youtube_stream_id       String?               @db.VarChar(255)
+  youtube_stream_key      String?               @db.Text
+  youtube_rtmp_url        String?               @db.Text
+  created_at              DateTime?             @db.Timestamp(0)
+  updated_at              DateTime?             @db.Timestamp(0)
+  start_notification_sent Boolean               @default(false)
+  courses                 courses?              @relation(fields: [course_id], references: [id], onUpdate: NoAction, map: "live_classes_course_id_foreign")
+  users                   users                 @relation(fields: [instructor_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "live_classes_instructor_id_foreign")
+
+  @@index([course_id], map: "live_classes_course_id_foreign")
+  @@index([instructor_id], map: "live_classes_instructor_id_foreign")
+}
+
+model marketing_settings {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  key        String    @db.VarChar(255)
+  value      String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model menu_item_translations {
+  id           BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  menu_item_id BigInt     @db.UnsignedBigInt
+  lang_code    String     @db.VarChar(255)
+  label        String     @db.VarChar(255)
+  created_at   DateTime?  @db.Timestamp(0)
+  updated_at   DateTime?  @db.Timestamp(0)
+  menu_items   menu_items @relation(fields: [menu_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "menu_item_translations_menu_item_id_foreign")
+
+  @@index([menu_item_id], map: "menu_item_translations_menu_item_id_foreign")
+}
+
+model menu_items {
+  id                     BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
+  label                  String                   @db.VarChar(255)
+  link                   String                   @db.VarChar(255)
+  parent_id              BigInt                   @default(0) @db.UnsignedBigInt
+  sort                   Int                      @default(0)
+  class                  String?                  @db.VarChar(255)
+  menu_id                BigInt                   @db.UnsignedBigInt
+  depth                  Int                      @default(0)
+  created_at             DateTime?                @db.Timestamp(0)
+  updated_at             DateTime?                @db.Timestamp(0)
+  role_id                Int                      @default(0)
+  menu_item_translations menu_item_translations[]
+  menus                  menus                    @relation(fields: [menu_id], references: [id], onDelete: Cascade, map: "menu_items_menu_id_foreign")
+
+  @@index([menu_id], map: "menu_items_menu_id_foreign")
+}
+
+model menu_translations {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  menu_id    BigInt    @db.UnsignedBigInt
+  lang_code  String    @db.VarChar(255)
+  name       String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  menus      menus     @relation(fields: [menu_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "menu_translations_menu_id_foreign")
+
+  @@index([menu_id], map: "menu_translations_menu_id_foreign")
+}
+
+model menus {
+  id                BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
+  name              String              @db.VarChar(255)
+  slug              String              @db.VarChar(255)
+  created_at        DateTime?           @db.Timestamp(0)
+  updated_at        DateTime?           @db.Timestamp(0)
+  menu_items        menu_items[]
+  menu_translations menu_translations[]
+}
+
+model mercadopagopg {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  key        String    @db.VarChar(255)
+  value      String    @db.Text
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model migrations {
+  id        Int    @id @default(autoincrement()) @db.UnsignedInt
+  migration String @db.VarChar(255)
+  batch     Int
+}
+
+model model_has_permissions {
+  permission_id BigInt      @db.UnsignedBigInt
+  model_type    String      @db.VarChar(255)
+  model_id      BigInt      @db.UnsignedBigInt
+  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "model_has_permissions_permission_id_foreign")
+
+  @@id([permission_id, model_id, model_type])
+  @@index([model_id, model_type], map: "model_has_permissions_model_id_model_type_index")
+}
+
+model model_has_roles {
+  role_id    BigInt @db.UnsignedBigInt
+  model_type String @db.VarChar(255)
+  model_id   BigInt @db.UnsignedBigInt
+  roles      roles  @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "model_has_roles_role_id_foreign")
+
+  @@id([role_id, model_id, model_type])
+  @@index([model_id, model_type], map: "model_has_roles_model_id_model_type_index")
+}
+
+model multi_currencies {
+  id                BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  currency_name     String    @db.VarChar(255)
+  country_code      String    @db.VarChar(255)
+  currency_code     String    @db.VarChar(255)
+  currency_icon     String    @db.VarChar(255)
+  is_default        String    @db.VarChar(255)
+  currency_rate     Float     @db.Float
+  currency_position String    @default("before_price") @db.VarChar(255)
+  status            String    @db.VarChar(255)
+  created_at        DateTime? @db.Timestamp(0)
+  updated_at        DateTime? @db.Timestamp(0)
+}
+
+model news {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  admin_id         BigInt    @default(0) @db.UnsignedBigInt
+  news_category_id BigInt    @db.UnsignedBigInt
+  slug             String    @db.Text
+  image            String?   @db.VarChar(255)
+  views            BigInt    @default(0)
+  show_homepage    Boolean   @default(false)
+  is_popular       Boolean   @default(false)
+  tags             String?   @db.Text
+  status           Boolean   @default(false)
+  created_at       DateTime? @db.Timestamp(0)
+  updated_at       DateTime? @db.Timestamp(0)
+}
+
+model news_categories {
+  id                         BigInt                       @id @default(autoincrement()) @db.UnsignedBigInt
+  slug                       String                       @db.VarChar(255)
+  position                   Int                          @default(0)
+  parent_id                  String?                      @db.VarChar(255)
+  status                     Boolean                      @default(true)
+  created_at                 DateTime?                    @db.Timestamp(0)
+  updated_at                 DateTime?                    @db.Timestamp(0)
+  news_category_translations news_category_translations[]
+}
+
+model news_category_translations {
+  id                BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
+  news_category_id  BigInt          @db.UnsignedBigInt
+  lang_code         String          @db.VarChar(255)
+  title             String          @db.VarChar(255)
+  short_description String?         @db.VarChar(255)
+  created_at        DateTime?       @db.Timestamp(0)
+  updated_at        DateTime?       @db.Timestamp(0)
+  news_categories   news_categories @relation(fields: [news_category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "news_category_translations_news_category_id_foreign")
+
+  @@index([news_category_id], map: "news_category_translations_news_category_id_foreign")
+}
+
+model news_comments {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  news_id    BigInt    @db.UnsignedBigInt
+  user_id    BigInt    @db.UnsignedBigInt
+  name       String?   @db.VarChar(255)
+  email      String?   @db.VarChar(255)
+  phone      String?   @db.VarChar(255)
+  comment    String    @db.Text
+  status     Boolean   @default(false)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model news_letters {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  email        String    @db.VarChar(255)
+  status       String    @default("not_verified") @db.VarChar(255)
+  verify_token String?   @db.VarChar(255)
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model news_translations {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  news_id         BigInt    @db.UnsignedBigInt
+  lang_code       String    @db.VarChar(255)
+  title           String    @db.VarChar(255)
+  description     String    @db.LongText
+  seo_title       String?   @db.Text
+  seo_description String?   @db.Text
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+}
+
+model note_purchases {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt    @db.UnsignedBigInt
+  note_id    BigInt    @db.UnsignedBigInt
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model notes {
+  id                                                             BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  class_category_id                                              BigInt            @db.UnsignedBigInt
+  subject_category_id                                            BigInt            @db.UnsignedBigInt
+  title                                                          String            @db.VarChar(255)
+  language                                                       String            @default("en") @db.VarChar(5)
+  pdf_path                                                       String            @db.VarChar(255)
+  is_paid                                                        Boolean           @default(false)
+  price                                                          Decimal           @default(0.00) @db.Decimal(10, 2)
+  status                                                         Boolean           @default(true)
+  created_at                                                     DateTime?         @db.Timestamp(0)
+  updated_at                                                     DateTime?         @db.Timestamp(0)
+  course_categories_notes_class_category_idTocourse_categories   course_categories @relation("notes_class_category_idTocourse_categories", fields: [class_category_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notes_class_category_id_foreign")
+  course_categories_notes_subject_category_idTocourse_categories course_categories @relation("notes_subject_category_idTocourse_categories", fields: [subject_category_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notes_subject_category_id_foreign")
+
+  @@index([class_category_id], map: "notes_class_category_id_foreign")
+  @@index([subject_category_id], map: "notes_subject_category_id_foreign")
+}
+
+model order_items {
+  id              BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+  order_id        BigInt                @db.UnsignedBigInt
+  qty             Int                   @default(1)
+  price           Float
+  item_type       order_items_item_type @default(course)
+  product_id      BigInt?               @db.UnsignedBigInt
+  course_id       BigInt?               @db.UnsignedBigInt
+  commission_rate Int?
+  created_at      DateTime?             @db.Timestamp(0)
+  updated_at      DateTime?             @db.Timestamp(0)
+  orders          orders                @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_items_order_id_foreign")
+
+  @@index([order_id], map: "order_items_order_id_foreign")
+}
+
+model orders {
+  id                      BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  invoice_id              String?       @db.Text
+  buyer_id                BigInt?       @db.UnsignedBigInt
+  seller_id               BigInt?       @db.UnsignedBigInt
+  status                  orders_status @default(pending)
+  has_coupon              Boolean       @default(false)
+  coupon_code             String?       @db.VarChar(255)
+  coupon_discount_percent Int?
+  coupon_discount_amount  Float?
+  payment_method          String?       @db.VarChar(255)
+  payment_status          String?       @db.VarChar(255)
+  payable_amount          Float?
+  gateway_charge          Float?
+  payable_with_charge     Float?
+  paid_amount             Float?
+  conversion_rate         Float?
+  payable_currency        String?       @db.VarChar(255)
+  payment_details         String?       @db.Text
+  transaction_id          String?       @db.VarChar(255)
+  commission_rate         Int?
+  order_type              String?       @default("course") @db.VarChar(255)
+  order_details           String?       @db.Text
+  created_at              DateTime?     @db.Timestamp(0)
+  updated_at              DateTime?     @db.Timestamp(0)
+  enrollments             enrollments[]
+  order_items             order_items[]
+}
+
+model otp_codes {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  phone      String    @db.VarChar(255)
+  code       String    @db.VarChar(255)
+  expires_at DateTime  @db.Timestamp(0)
+  attempts   Int       @default(0) @db.UnsignedTinyInt
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+
+  @@index([phone], map: "otp_codes_phone_index")
+}
+
+model password_reset_tokens {
+  email      String    @id @db.VarChar(255)
+  token      String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+}
+
+model payment_gateways {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  key        String    @db.VarChar(255)
+  value      String    @db.Text
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model permissions {
+  id                    BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+  name                  String                  @db.VarChar(255)
+  guard_name            String                  @db.VarChar(255)
+  group_name            String?                 @db.VarChar(255)
+  created_at            DateTime?               @db.Timestamp(0)
+  updated_at            DateTime?               @db.Timestamp(0)
+  model_has_permissions model_has_permissions[]
+  role_has_permissions  role_has_permissions[]
+
+  @@unique([name, guard_name], map: "permissions_name_guard_name_unique")
+}
+
+model personal_access_tokens {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  tokenable_type String    @db.VarChar(255)
+  tokenable_id   BigInt    @db.UnsignedBigInt
+  name           String    @db.VarChar(255)
+  token          String    @unique(map: "personal_access_tokens_token_unique") @db.VarChar(64)
+  abilities      String?   @db.Text
+  last_used_at   DateTime? @db.Timestamp(0)
+  expires_at     DateTime? @db.Timestamp(0)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  @@index([tokenable_type, tokenable_id], map: "personal_access_tokens_tokenable_type_tokenable_id_index")
+}
+
+model popup_user_seen {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt    @db.UnsignedBigInt
+  popup_id   BigInt    @db.UnsignedBigInt
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model popups {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  title       String?   @db.VarChar(255)
+  description String?   @db.Text
+  image       String?   @db.VarChar(255)
+  is_active   Boolean   @default(true)
+}
+
+model quiz_question_answers {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  title       String?   @db.VarChar(255)
+  question_id BigInt    @db.UnsignedBigInt
+  correct     Int?
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model quiz_questions {
+  id         BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
+  quiz_id    BigInt              @db.UnsignedBigInt
+  title      String              @db.VarChar(255)
+  type       quiz_questions_type @default(multiple)
+  grade      Int?
+  created_at DateTime?           @db.Timestamp(0)
+  updated_at DateTime?           @db.Timestamp(0)
+  quizzes    quizzes             @relation(fields: [quiz_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "quiz_questions_quiz_id_foreign")
+
+  @@index([quiz_id], map: "quiz_questions_quiz_id_foreign")
+}
+
+model quiz_results {
+  id         BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt               @db.UnsignedBigInt
+  quiz_id    BigInt               @db.UnsignedBigInt
+  result     Json?
+  user_grade Int?
+  status     quiz_results_status?
+  created_at DateTime?            @db.Timestamp(0)
+  updated_at DateTime?            @db.Timestamp(0)
+}
+
+model quizzes {
+  id              BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  chapter_item_id BigInt           @db.UnsignedBigInt
+  instructor_id   BigInt           @db.UnsignedBigInt
+  chapter_id      BigInt           @db.UnsignedBigInt
+  course_id       BigInt           @db.UnsignedBigInt
+  title           String           @db.VarChar(255)
+  time            String?          @db.VarChar(255)
+  attempt         String?          @db.VarChar(255)
+  pass_mark       String?          @db.VarChar(255)
+  total_mark      String?          @db.VarChar(255)
+  status          quizzes_status   @default(active)
+  created_at      DateTime?        @db.Timestamp(0)
+  updated_at      DateTime?        @db.Timestamp(0)
+  quiz_questions  quiz_questions[]
+}
+
+model role_has_permissions {
+  permission_id BigInt      @db.UnsignedBigInt
+  role_id       BigInt      @db.UnsignedBigInt
+  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "role_has_permissions_permission_id_foreign")
+  roles         roles       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "role_has_permissions_role_id_foreign")
+
+  @@id([permission_id, role_id])
+  @@index([role_id], map: "role_has_permissions_role_id_foreign")
+}
+
+model roles {
+  id                   BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
+  name                 String                 @db.VarChar(255)
+  guard_name           String                 @db.VarChar(255)
+  created_at           DateTime?              @db.Timestamp(0)
+  updated_at           DateTime?              @db.Timestamp(0)
+  model_has_roles      model_has_roles[]
+  role_has_permissions role_has_permissions[]
+
+  @@unique([name, guard_name], map: "roles_name_guard_name_unique")
+}
+
+model section_settings {
+  id                          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  hero_section                Boolean   @default(false)
+  top_category_section        Boolean   @default(false)
+  brands_section              Boolean   @default(false)
+  about_section               Boolean   @default(false)
+  featured_course_section     Boolean   @default(false)
+  news_letter_section         Boolean   @default(false)
+  featured_instructor_section Boolean   @default(false)
+  counter_section             Boolean   @default(false)
+  faq_section                 Boolean   @default(false)
+  our_features_section        Boolean   @default(false)
+  testimonial_section         Boolean   @default(false)
+  banner_section              Boolean   @default(false)
+  latest_blog_section         Boolean   @default(false)
+  blog_page                   Boolean   @default(false)
+  about_page                  Boolean   @default(false)
+  contact_page                Boolean   @default(false)
+  created_at                  DateTime? @db.Timestamp(0)
+  updated_at                  DateTime? @db.Timestamp(0)
+  gallery_section             Boolean?  @default(true)
+}
+
+model section_translations {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  section_id BigInt    @db.UnsignedBigInt
+  lang_code  String    @db.VarChar(255)
+  content    Json
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  sections   sections  @relation(fields: [section_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "section_translations_section_id_foreign")
+
+  @@index([section_id], map: "section_translations_section_id_foreign")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model section_translations_backup {
+  id         BigInt    @default(0) @db.UnsignedBigInt
+  section_id BigInt    @db.UnsignedBigInt
+  lang_code  String    @db.VarChar(255)
+  content    Json
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+
+  @@ignore
+}
+
+model sections {
+  id                   BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
+  home_id              BigInt                 @db.UnsignedBigInt
+  name                 String                 @db.VarChar(255)
+  global_content       Json?
+  status               Boolean                @default(true)
+  created_at           DateTime?              @db.Timestamp(0)
+  updated_at           DateTime?              @db.Timestamp(0)
+  section_translations section_translations[]
+  homes                homes                  @relation(fields: [home_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "sections_home_id_foreign")
+
+  @@index([home_id], map: "sections_home_id_foreign")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model sections_backup {
+  id             BigInt    @default(0) @db.UnsignedBigInt
+  home_id        BigInt    @db.UnsignedBigInt
+  name           String    @db.VarChar(255)
+  global_content Json?
+  status         Boolean   @default(true)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  @@ignore
+}
+
+model seo_settings {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  page_name       String    @db.VarChar(255)
+  seo_title       String    @db.Text
+  seo_description String    @db.Text
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+}
+
+model settings {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  key        String    @db.VarChar(255)
+  value      String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model social_links {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  link       String?   @db.VarChar(255)
+  icon       String?   @db.VarChar(255)
+  status     Boolean   @default(true)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model socialite_credentials {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id       BigInt    @db.UnsignedBigInt
+  provider_name String    @db.VarChar(255)
+  provider_id   String?   @db.VarChar(255)
+  access_token  String?   @db.VarChar(255)
+  refresh_token String?   @db.VarChar(255)
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+}
+
+model states {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  country_id BigInt    @db.UnsignedBigInt
+  status     Boolean   @default(true)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  cities     cities[]
+  countries  countries @relation(fields: [country_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "states_country_id_foreign")
+
+  @@index([country_id], map: "states_country_id_foreign")
+}
+
+model subjects {
+  id             BigInt           @id @default(autoincrement())
+  name           String?          @db.VarChar(100)
+  slug           String?          @unique(map: "slug") @db.VarChar(50)
+  keywords       Json?
+  class_subjects class_subjects[]
+}
+
+model telescope_entries {
+  sequence                BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid                    String                   @unique(map: "telescope_entries_uuid_unique") @db.Char(36)
+  batch_id                String                   @db.Char(36)
+  family_hash             String?                  @db.VarChar(255)
+  should_display_on_index Boolean                  @default(true)
+  type                    String                   @db.VarChar(20)
+  content                 String                   @db.LongText
+  created_at              DateTime?                @db.DateTime(0)
+  telescope_entries_tags  telescope_entries_tags[]
+
+  @@index([batch_id], map: "telescope_entries_batch_id_index")
+  @@index([created_at], map: "telescope_entries_created_at_index")
+  @@index([family_hash], map: "telescope_entries_family_hash_index")
+  @@index([type, should_display_on_index], map: "telescope_entries_type_should_display_on_index_index")
+}
+
+model telescope_entries_tags {
+  entry_uuid        String            @db.Char(36)
+  tag               String            @db.VarChar(255)
+  telescope_entries telescope_entries @relation(fields: [entry_uuid], references: [uuid], onDelete: Cascade, onUpdate: NoAction, map: "telescope_entries_tags_entry_uuid_foreign")
+
+  @@id([entry_uuid, tag])
+  @@index([tag], map: "telescope_entries_tags_tag_index")
+}
+
+model telescope_monitoring {
+  tag String @id @db.VarChar(255)
+}
+
+model testimonial_translations {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  testimonial_id BigInt    @db.UnsignedBigInt
+  lang_code      String    @db.VarChar(255)
+  name           String    @db.VarChar(255)
+  designation    String    @db.VarChar(255)
+  comment        String    @db.Text
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  @@index([lang_code], map: "testimonial_translations_lang_code_index")
+}
+
+model testimonials {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  image      String?   @db.VarChar(255)
+  rating     String?   @default("0") @db.VarChar(255)
+  status     Boolean   @default(true)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model tv_login_codes {
+  id           BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+  code         String                @unique(map: "tv_login_codes_code_unique") @db.VarChar(255)
+  user_id      BigInt?               @db.UnsignedBigInt
+  status       tv_login_codes_status @default(pending)
+  expires_at   DateTime              @db.Timestamp(0)
+  created_at   DateTime?             @db.Timestamp(0)
+  updated_at   DateTime?             @db.Timestamp(0)
+  device_name  String?               @db.VarChar(255)
+  device_model String?               @db.VarChar(255)
+  users        users?                @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "tv_login_codes_user_id_foreign")
+
+  @@index([user_id], map: "tv_login_codes_user_id_foreign")
+}
+
+model user_ai_limits {
+  id         BigInt    @id @default(autoincrement())
+  user_id    BigInt?
+  date       DateTime? @db.Date
+  count      Int?      @default(0)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model user_education {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id      BigInt    @db.UnsignedBigInt
+  organization String?   @db.VarChar(255)
+  degree       String?   @db.VarChar(255)
+  start_date   DateTime? @db.Date
+  end_date     DateTime? @db.Date
+  current      Int?      @db.TinyInt
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+}
+
+model user_experiences {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt    @db.UnsignedBigInt
+  company    String?   @db.VarChar(255)
+  position   String?   @db.VarChar(255)
+  start_date DateTime? @db.Date
+  end_date   DateTime? @db.Date
+  current    Int?      @db.TinyInt
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model user_skill_topics {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  category_id BigInt    @db.UnsignedBigInt
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+}
+
+model users {
+  id                     BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
+  name                   String                   @db.VarChar(255)
+  email                  String?                  @unique(map: "users_email_unique") @db.VarChar(255)
+  role                   users_role               @default(student)
+  email_verified_at      DateTime?                @db.Timestamp(0)
+  password               String                   @db.VarChar(255)
+  remember_token         String?                  @db.VarChar(100)
+  fcm_token              String?                  @db.Text
+  device_token           String?                  @db.VarChar(255)
+  created_at             DateTime?                @db.Timestamp(0)
+  updated_at             DateTime?                @db.Timestamp(0)
+  status                 String                   @default("active") @db.VarChar(255)
+  is_banned              String                   @default("no") @db.VarChar(255)
+  verification_token     String?                  @db.VarChar(255)
+  forget_password_token  String?                  @db.VarChar(255)
+  phone                  String?                  @unique(map: "users_phone_unique") @db.VarChar(255)
+  address                String?                  @db.VarChar(255)
+  image                  String                   @default("/uploads/website-images/frontend-avatar.png") @db.VarChar(255)
+  cover                  String                   @default("/uploads/website-images/frontend-cover.png") @db.VarChar(255)
+  wallet_balance         Decimal                  @default(0.00) @db.Decimal(8, 2)
+  bio                    String?                  @db.Text
+  short_bio              String?                  @db.Text
+  job_title              String?                  @db.VarChar(255)
+  gender                 users_gender?
+  age                    Int?
+  country_id             BigInt?                  @db.UnsignedBigInt
+  state                  String?                  @db.VarChar(50)
+  city                   String?                  @db.VarChar(50)
+  facebook               String?                  @db.VarChar(255)
+  twitter                String?                  @db.VarChar(255)
+  linkedin               String?                  @db.VarChar(255)
+  website                String?                  @db.VarChar(255)
+  github                 String?                  @db.VarChar(255)
+  profile_completed      Boolean                  @default(false)
+  firebase_uid           String?                  @unique(map: "firebase_uid") @db.VarChar(255)
+  student_class          String?                  @db.VarChar(10)
+  board                  String?                  @db.VarChar(50)
+  school                 String?                  @db.VarChar(255)
+  language               String?                  @db.VarChar(50)
+  ai_chat_threads        ai_chat_threads[]
+  carts                  carts[]
+  course_chapter_items   course_chapter_items[]
+  course_chapter_lessons course_chapter_lessons[]
+  favorite_course_user   favorite_course_user[]
+  jitsi_settings         jitsi_settings[]
+  live_classes           live_classes[]
+  tv_login_codes         tv_login_codes[]
+  zoom_credentials       zoom_credentials[]
+}
+
+model withdraw_methods {
+  id          BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String                  @db.VarChar(255)
+  min_amount  Decimal                 @default(0.00) @db.Decimal(8, 2)
+  max_amount  Decimal                 @default(0.00) @db.Decimal(8, 2)
+  description String?                 @db.Text
+  status      withdraw_methods_status @default(active)
+  created_at  DateTime?               @db.Timestamp(0)
+  updated_at  DateTime?               @db.Timestamp(0)
+}
+
+model withdraw_requests {
+  id              BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id         Int
+  method          String                   @db.VarChar(255)
+  current_amount  Decimal                  @default(0.00) @db.Decimal(8, 2)
+  withdraw_amount Decimal                  @default(0.00) @db.Decimal(8, 2)
+  account_info    String                   @db.Text
+  status          withdraw_requests_status @default(pending)
+  approved_date   String?                  @db.VarChar(255)
+  created_at      DateTime?                @db.Timestamp(0)
+  updated_at      DateTime?                @db.Timestamp(0)
+}
+
+model yt_courses {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  title            String    @db.VarChar(255)
+  description      String?   @db.Text
+  youtube_video_id String    @db.VarChar(255)
+  published_at     DateTime? @db.Timestamp(0)
+  thumbnail        String?   @db.VarChar(255)
+  is_active        Boolean   @default(true)
+  sort_order       Int       @default(0) @db.UnsignedInt
+  created_at       DateTime? @db.Timestamp(0)
+  updated_at       DateTime? @db.Timestamp(0)
+
+  @@index([is_active, sort_order], map: "yt_courses_is_active_sort_order_index")
+}
+
+model zoom_credentials {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  instructor_id BigInt    @db.UnsignedBigInt
+  client_id     String    @db.VarChar(255)
+  client_secret String    @db.VarChar(255)
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+  users         users     @relation(fields: [instructor_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "zoom_credentials_instructor_id_foreign")
+
+  @@index([instructor_id], map: "zoom_credentials_instructor_id_foreign")
+}
+
+enum ai_chat_messages_role {
+  user
+  ai
+}
+
+enum instructor_requests_status {
+  pending
+  approved
+  rejected
+}
+
+enum course_chapter_items_type {
+  lesson
+  quiz
+  document
+  live
+}
+
+enum courses_type {
+  course
+  webinar
+}
+
+enum free_course_chapter_items_type {
+  lesson
+  document
+  quiz
+  live
+}
+
+enum quiz_questions_type {
+  descriptive
+  multiple
+}
+
+enum tv_login_codes_status {
+  pending
+  approved
+  expired
+}
+
+enum users_role {
+  instructor
+  student
+}
+
+enum course_live_classes_type {
+  zoom
+  jitsi
+  youtube
+}
+
+enum courses_course_access_type {
+  paid
+  free
+}
+
+enum order_items_item_type {
+  course
+  product
+}
+
+enum orders_status {
+  pending
+  processing
+  completed
+  declined
+}
+
+enum coupons_status {
+  active
+  inactive
+}
+
+enum course_chapters_status {
+  active
+  inactive
+}
+
+enum free_course_chapters_status {
+  active
+  inactive
+}
+
+enum quiz_results_status {
+  pass
+  failed
+}
+
+enum withdraw_methods_status {
+  active
+  inactive
+}
+
+enum withdraw_requests_status {
+  pending
+  approved
+  rejected
+}
+
+enum course_progress_type {
+  lesson
+  quiz
+  document
+  live
+}
+
+enum course_chapter_lessons_storage {
+  upload
+  youtube
+  vimeo
+  external_link
+  google_drive
+  iframe
+  aws
+  wasabi
+  live
+}
+
+enum free_course_chapter_lessons_storage {
+  upload
+  youtube
+  vimeo
+  external_link
+  google_drive
+  iframe
+  aws
+  wasabi
+  live
+}
+
+enum free_courses_demo_video_storage {
+  upload
+  youtube
+  vimeo
+  external_link
+  aws
+  wasabi
+}
+
+enum career_applications_status {
+  pending
+  reviewed
+  shortlisted
+  rejected
+  hired
+}
+
+enum quizzes_status {
+  active
+  inactive
+}
+
+enum course_chapter_lessons_file_type {
+  video
+  audio
+  pdf
+  txt
+  docx
+  iframe
+  image
+  file
+  live
+  other
+}
+
+enum courses_demo_video_storage {
+  upload
+  youtube
+  vimeo
+  external_link
+  aws
+  wasabi
+}
+
+enum free_course_chapter_lessons_file_type {
+  video
+  audio
+  pdf
+  txt
+  docx
+  iframe
+  image
+  file
+  other
+}
+
+enum careers_status {
+  draft
+  published
+  closed
+}
+
+enum course_chapter_lessons_status {
+  active
+  inactive
+}
+
+enum free_course_chapter_lessons_status {
+  active
+  inactive
+}
+
+enum free_courses_status {
+  active
+  is_draft
+  inactive
+}
+
+enum free_courses_is_approved {
+  pending
+  approved
+  rejected
+}
+
+enum live_classes_platform {
+  jitsi
+  youtube
+}
+
+enum courses_status {
+  active
+  is_draft
+  inactive
+}
+
+enum users_gender {
+  male
+  female
+}
+
+enum courses_is_approved {
+  pending
+  approved
+  rejected
+}

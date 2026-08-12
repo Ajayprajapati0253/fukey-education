@@ -1,4 +1,5 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Expose } from 'class-transformer';
 
 export class LoginDto {
   @IsEmail({}, { message: 'Email is required' })
@@ -10,7 +11,8 @@ export class LoginDto {
 
   @IsOptional()
   @IsString()
-  recaptchaToken?: string;
+  @Expose({ name: 'g-recaptcha-response' })
+  gRecaptchaResponse?: string;
 
   @IsOptional()
   @IsString()

@@ -12,6 +12,10 @@ async function bootstrap() {
       forbidNonWhitelisted: true, // throws if extra/unexpected fields are sent (matches Laravel's strict validation behavior)
     }),
   );
+
+  (BigInt.prototype as any).toJSON = function () {
+    return this.toString();
+  };
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

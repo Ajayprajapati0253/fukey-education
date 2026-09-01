@@ -7,10 +7,10 @@ import { RecaptchaGuard } from './guards/recaptcha.guard';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { PasswordConfirmedGuard } from './guards/password-confirmed.guard';
-import { PrismaModule } from '../prisma/prisma.module';
 import { EmailService } from './services/email.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { FacebookStrategy } from './strategies/facebook.strategy';
+import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
   imports: [

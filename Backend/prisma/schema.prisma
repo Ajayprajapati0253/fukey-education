@@ -579,6 +579,8 @@ model courses {
   ebooks               ebooks[]
   favorite_course_user favorite_course_user[]
   live_classes         live_classes[]
+  enrollments enrollments[]
+  instructor users @relation(fields: [instructor_id], references: [id])
 }
 
 model crypto_p_g {
@@ -720,10 +722,13 @@ model enrollments {
   has_access Boolean   @default(false)
   created_at DateTime? @db.Timestamp(0)
   updated_at DateTime? @db.Timestamp(0)
+
   orders     orders    @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "enrollments_order_id_foreign")
+  course     courses   @relation(fields: [course_id], references: [id])
 
   @@unique([user_id, course_id], map: "enrollments_user_id_course_id_unique")
   @@index([order_id], map: "enrollments_order_id_foreign")
+  @@index([course_id])
 }
 
 model failed_jobs {
@@ -1835,6 +1840,7 @@ model users {
   live_classes           live_classes[]
   tv_login_codes         tv_login_codes[]
   zoom_credentials       zoom_credentials[]
+  courses courses[]
 }
 
 model withdraw_methods {

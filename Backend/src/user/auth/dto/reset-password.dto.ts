@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { Expose } from 'class-transformer';
-import { Match } from '../../common/decorators/match.decorator';
+import { Match } from '../../../common/decorators/match.decorator';
 
 export class ResetPasswordDto {
   @IsNotEmpty({ message: 'Email is required' })

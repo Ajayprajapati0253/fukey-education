@@ -6,7 +6,6 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 import { LoginDto } from '../dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -18,7 +17,8 @@ import * as crypto from 'crypto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { UpdatePasswordDto } from '../dto/update-password.dto';
-
+import { PrismaService } from 'src/prisma/prisma.service';
+import { FirebaseService } from 'src/firebase/firebase.service';
 
 
 @Injectable()
@@ -27,84 +27,287 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private firebaseService: FirebaseService,
+
   ) {}
 
-  async login(dto: LoginDto) {
-    console.log("logindto:",dto.email);
-    
-    const user = await this.prisma.users.findUnique({
-      where: { email: dto.email },
+async login(dto: LoginDto) {
+  const user = await this.prisma.users.findUnique({
+    where: {
+      email: dto.email,
+    },
+  });
+
+  console.log('LOGIN DEBUG:', {
+    email: dto.email,
+    userFound: !!user,
+    userId: user?.id,
+    passwordHashExists: !!user?.password,
+    passwordHashPrefix: user?.password?.substring(0, 7),
+  });
+
+  if (!user) {
+    throw new UnauthorizedException({
+      status: 'error',
+      message:
+        'Invalid credentials please check your email and password',
     });
+  }
 
-    // Laravel: !$user || !Hash::check(...)
-    if (!user || !(await bcrypt.compare(dto.password, user.password))) {
-      throw new UnauthorizedException({ email: 'Invalid credentials please check your email and password' });
-    }
+  // Laravel bcrypt ($2y$) → Node bcrypt ($2b$)
+  const passwordHash = user.password.replace(/^\$2y\$/, '$2b$');
 
-    // Laravel: status != ACTIVE  ← YE MISSING THA, ADD KIYA
-    if (user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException({ email: 'Inactive account' });
-    }
+  console.log('HASH DEBUG:', {
+    originalPrefix: user.password.substring(0, 7),
+    convertedPrefix: passwordHash.substring(0, 7),
+    hashLength: passwordHash.length,
+  });
 
-    // Laravel: is_banned == BANNED ('yes')
-    if (user.is_banned === UserStatus.BANNED) {
-      throw new ForbiddenException({ message: 'Your account has been banned', alertType: 'error' });
-    }
+  const passwordMatch = await bcrypt.compare(
+    dto.password,
+    passwordHash,
+  );
 
-    // Laravel: !email_verified_at  ← YE MISSING THA, ADD KIYA
-    if (!user.email_verified_at) {
-      throw new UnauthorizedException({ message: 'Please verify your email', alertType: 'error' });
-    }
+  console.log('PASSWORD MATCH:', passwordMatch);
 
-    // FCM token update — Laravel: if ($request->filled('fcm_token'))
-    if (dto.fcmToken) {
-      await this.prisma.users.update({
-        where: { id: user.id },
-        data: { fcm_token: dto.fcmToken },
+  if (!passwordMatch) {
+    throw new UnauthorizedException({
+      status: 'error',
+      message:
+        'Invalid credentials please check your email and password',
+    });
+  }
+
+  if (user.status !== UserStatus.ACTIVE) {
+    throw new ForbiddenException({
+      status: 'error',
+      message: 'Inactive account',
+    });
+  }
+
+  if (user.is_banned === UserStatus.BANNED) {
+    throw new ForbiddenException({
+      status: 'error',
+      message: 'Your account has been banned',
+    });
+  }
+
+  if (!user.email_verified_at) {
+    throw new ForbiddenException({
+      status: 'error',
+      message: 'Please verify your email',
+    });
+  }
+
+  // FCM optional — same as Laravel
+  if (dto.fcmToken) {
+    await this.prisma.users.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        fcm_token: dto.fcmToken,
+      },
+    });
+  }
+
+const payload = {
+  sub: user.id.toString(),
+  email: user.email,
+  role: user.role,
+};
+
+const accessToken = this.jwtService.sign(payload);
+
+  return {
+    status: 'success',
+    message: 'Logged in successfully.',
+    accessToken,
+      user_id: user.id.toString(),
+
+  };
+}
+
+async firebaseLogin(
+  firebaseToken: string,
+  fcmToken?: string,
+) {
+  if (!firebaseToken) {
+    throw new UnauthorizedException({
+      status: 'error',
+      message: 'Firebase token missing',
+    });
+  }
+
+  try {
+    // 1. Verify Firebase ID token
+    const verifiedToken =
+      await this.firebaseService.verifyIdToken(
+        firebaseToken,
+      );
+
+    // Firebase UID
+    const firebaseUid = verifiedToken.uid;
+
+    // Phone number verified by Firebase
+    const phone = verifiedToken.phone_number;
+
+    if (!firebaseUid) {
+      throw new UnauthorizedException({
+        status: 'error',
+        message: 'Invalid Firebase token',
       });
     }
 
-    // TODO (Course/Order module migrate hone ke baad): Laravel ka sessionCartToDatabase()
-    // yahan call hoga — JWT stateless hai isliye cart merge client se course-ids array
-    // bhej kar karna padega (session cart nahi milega).
-
-    const payload = { sub: user.id, email: user.email, role: user.role };
-    const accessToken = this.jwtService.sign(payload);
-
-    return {
-      accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
+    // 2. Find existing user
+    let user = await this.prisma.users.findFirst({
+      where: {
+        firebase_uid: firebaseUid,
       },
-      redirectTo: user.role === 'instructor' ? '/instructor/dashboard' : '/student/dashboard',
-    };
-  }
+    });
 
+    let isNewUser = false;
+
+    // 3. Create user if this is the first login
+    if (!user) {
+      isNewUser = true;
+
+      const randomPassword =
+        crypto.randomBytes(32).toString('hex');
+
+      const hashedPassword = await bcrypt.hash(
+        randomPassword,
+        10,
+      );
+
+user = await this.prisma.users.create({
+  data: {
+    firebase_uid: firebaseUid,
+    name: '',
+    role: 'student',
+    phone: phone ?? null,
+    status: UserStatus.ACTIVE,
+    is_banned: UserStatus.UNBANNED,
+    password: hashedPassword,
+  },
+});
+    }
+
+    // 4. Check account status
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new ForbiddenException({
+        status: 'error',
+        message: 'Inactive account',
+      });
+    }
+
+    // 5. Check banned status
+    if (user.is_banned === UserStatus.BANNED) {
+      throw new ForbiddenException({
+        status: 'error',
+        message: 'Account banned',
+      });
+    }
+
+    // 6. Save FCM token if provided
+    if (fcmToken) {
+      await this.prisma.users.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          fcm_token: fcmToken,
+        },
+      });
+
+      // Keep local object consistent
+      user.fcm_token = fcmToken;
+    }
+
+    // 7. Generate Fukey JWT
+    const payload = {
+      sub: user.id.toString(),
+      email: user.email,
+      role: user.role,
+    };
+
+    const accessToken =
+      this.jwtService.sign(payload);
+
+    // 8. Same basic response structure as Laravel
+    return {
+      status: 'success',
+      accessToken,
+      user_id: user.id.toString(),
+      is_new_user: isNewUser,
+    };
+  } catch (error) {
+    if (
+      error instanceof UnauthorizedException ||
+      error instanceof ForbiddenException
+    ) {
+      throw error;
+    }
+
+    console.error('FIREBASE LOGIN ERROR:', error);
+
+    throw new UnauthorizedException({
+      status: 'error',
+      message: 'Invalid Firebase token',
+    });
+  }
+}
   /**
    * ConfirmablePasswordController.store() ka JWT equivalent.
    * Laravel session me timestamp likhta hai; JWT stateless hai isliye
    * hum naya token issue karte hain jisme pwdConfirmedAt claim ho.
    */
-  async confirmPassword(userId: number, email: string, role: string, password: string) {
-    const user = await this.prisma.users.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new UnauthorizedException('User not found.');
-    }
+async confirmPassword(
+  userId: bigint,
+  email: string,
+  role: string,
+  password: string,
+) {
+  const user = await this.prisma.users.findUnique({
+    where: {
+      id: userId,
+    },
+  });
 
-    // Laravel: Auth::guard('web')->validate([...]) — sirf verify, dobara login nahi
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      throw new BadRequestException({ password: 'The password is incorrect.' });
-    }
-
-    const pwdConfirmedAt = Math.floor(Date.now() / 1000);
-    const payload = { sub: userId, email, role, pwdConfirmedAt };
-    const accessToken = this.jwtService.sign(payload); // naya token — purane ki jagah client isko use karega
-
-    return { accessToken, message: 'Password confirmed successfully' };
+  if (!user) {
+    throw new UnauthorizedException('User not found.');
   }
+
+  // Laravel bcrypt ($2y$) -> Node bcrypt compatible format ($2b$)
+  const passwordHash = user.password.replace(/^\$2y\$/, '$2b$');
+
+  const isMatch = await bcrypt.compare(
+    password,
+    passwordHash,
+  );
+
+  if (!isMatch) {
+    throw new BadRequestException({
+      password: 'The password is incorrect.',
+    });
+  }
+
+  const pwdConfirmedAt = Math.floor(Date.now() / 1000);
+
+  const payload = {
+    sub: user.id.toString(),
+    email,
+    role,
+    pwdConfirmedAt,
+  };
+
+  const accessToken = this.jwtService.sign(payload);
+
+  return {
+    accessToken,
+    message: 'Password confirmed successfully',
+  };
+}
 
   async register(dto: RegisterDto) {
     // Laravel: 'email' => 'unique:users,email'
@@ -320,4 +523,29 @@ export class AuthService {
     return { access_token: this.jwtService.sign(payload), user };
   }
 
+  async deleteAccount(userId: bigint) {
+  const user = await this.prisma.users.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!user) {
+    throw new NotFoundException({
+      status: 'error',
+      message: 'User not found.',
+    });
+  }
+
+  await this.prisma.users.delete({
+    where: {
+      id: userId,
+    },
+  });
+
+  return {
+    status: 'success',
+    message: 'Account deleted successfully.',
+  };
+}
 }

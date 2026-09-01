@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
-import { Match } from '../../common/decorators/match.decorator';
+import { Match } from '../../../common/decorators/match.decorator';
 
 export class UpdatePasswordDto {
   @IsNotEmpty({ message: 'Current password is required' })

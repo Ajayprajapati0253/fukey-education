@@ -9,10 +9,10 @@ export class LoginDto {
   @IsString()
   password: string;
 
-  @IsOptional()
-  @IsString()
-  @Expose({ name: 'g-recaptcha-response' })
-  gRecaptchaResponse?: string;
+  // @IsOptional()
+  // @IsString()
+  // @Expose({ name: 'g-recaptcha-response' })
+  // gRecaptchaResponse?: string;
 
   @IsOptional()
   @IsString()

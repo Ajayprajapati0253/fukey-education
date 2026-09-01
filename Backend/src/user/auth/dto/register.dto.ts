@@ -1,7 +1,6 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, Length, MaxLength, MinLength } from 'class-validator';
 import { Expose } from 'class-transformer';
-import { Match } from '../../common/decorators/match.decorator';
-
+import { Match } from 'src/common/decorators/match.decorator';
 export class RegisterDto {
   @IsNotEmpty({ message: 'Name is required' })
   @IsString()

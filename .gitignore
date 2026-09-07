@@ -19,7 +19,3 @@ Thumbs.db
 
 # VS Code
 .vscode/
-
-# Firebase
-
-firebase/*.json

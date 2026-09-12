@@ -19,3 +19,5 @@ Thumbs.db
 
 # VS Code
 .vscode/
+# Firebase / Google Cloud credentials
+Backend/src/firebase/*.json

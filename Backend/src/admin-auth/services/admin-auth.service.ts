@@ -37,8 +37,7 @@ export class AdminAuthService {
 
         const hash = admin.password;
 
-            console.log('Password hash prefix:', hash.substring(0, 10));
-            console.log('Password hash length:', hash.length);
+
 
 const compatibleHash = admin.password.startsWith('$2y$')
   ? '$2b$' + admin.password.substring(4)
@@ -52,7 +51,7 @@ const passwordValid = await bcrypt.compare(
 if (!passwordValid) {
   throw new UnauthorizedException('Invalid Password');
 }
-console.log('Password valid:', passwordValid);
+
 
 
     const payload = {

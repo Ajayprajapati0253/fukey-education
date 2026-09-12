@@ -1,11 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  ForbiddenException,
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import {Injectable, UnauthorizedException, ForbiddenException, BadRequestException, ConflictException, NotFoundException} from '@nestjs/common';
 import { LoginDto } from '../dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -38,13 +31,7 @@ async login(dto: LoginDto) {
     },
   });
 
-  console.log('LOGIN DEBUG:', {
-    email: dto.email,
-    userFound: !!user,
-    userId: user?.id,
-    passwordHashExists: !!user?.password,
-    passwordHashPrefix: user?.password?.substring(0, 7),
-  });
+
 
   if (!user) {
     throw new UnauthorizedException({
@@ -57,18 +44,13 @@ async login(dto: LoginDto) {
   // Laravel bcrypt ($2y$) → Node bcrypt ($2b$)
   const passwordHash = user.password.replace(/^\$2y\$/, '$2b$');
 
-  console.log('HASH DEBUG:', {
-    originalPrefix: user.password.substring(0, 7),
-    convertedPrefix: passwordHash.substring(0, 7),
-    hashLength: passwordHash.length,
-  });
+
 
   const passwordMatch = await bcrypt.compare(
     dto.password,
     passwordHash,
   );
 
-  console.log('PASSWORD MATCH:', passwordMatch);
 
   if (!passwordMatch) {
     throw new UnauthorizedException({
@@ -354,7 +336,6 @@ async confirmPassword(
   }
 
   async verifyEmailToken(token: string) {
-    // console.log("token: ", token );
     const user = await this.prisma.users.findFirst({ where: { verification_token: token } });
 
     if (!user) {
@@ -511,8 +492,6 @@ async confirmPassword(
         },
       });
 
-      // STUB — real email sending deferred to Phase 16 (matches EmailService pattern)
-      console.log(`[STUB] Sending default password email to ${user.email}: ${randomPassword}`);
 
       return this.issueTokenForUser(user);
     }

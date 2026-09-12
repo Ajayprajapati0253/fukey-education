@@ -33,7 +33,6 @@ import { FirebaseLoginDto } from '../dto/firebase-login.dto';
     @UseGuards(RecaptchaGuard)
     @HttpCode(HttpStatus.OK)
     async login(@Body() loginDto: LoginDto) {
-      console.log("loginEmail: ",loginDto);
       return this.authService.login(loginDto);
     }
 
@@ -81,7 +80,6 @@ async firebaseLogin(
     @Get('verify-email/:token')
     @HttpCode(HttpStatus.OK)
     async verifyEmail(@Param('token') token: string) {
-      // console.log('token is: ',token);
       const verifyTokens = await this.authService.verifyEmailToken(token);
       return verifyTokens;
       

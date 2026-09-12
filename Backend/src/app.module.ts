@@ -10,7 +10,8 @@ import { AuthModule } from './user/auth/auth.module';
 import { AiModule } from './user/ai/ai.module';
 import { CartModule } from './user/cart/cart.module';
 import { DashboardModule } from './dashboard/dashboard.module';
-
+import { CommonModule } from './common/common.module';
+import { UserModule } from './user/user.module';
 
 
 @Module({
@@ -23,9 +24,10 @@ import { DashboardModule } from './dashboard/dashboard.module';
     FirebaseModule,
     AdminAuthModule,
     AdminModule,
-    AiModule,
-    CartModule,
-    DashboardModule
+
+    DashboardModule,
+    CommonModule,
+    UserModule
   ],
   controllers: [AppController],
   providers: [AppService],

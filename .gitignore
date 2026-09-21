@@ -20,4 +20,4 @@ Thumbs.db
 # VS Code
 .vscode/
 # Firebase / Google Cloud credentials
-Backend/src/firebase/*.json
+Backend/src/firebase/*.jsonBackend/src/firebase/fukeyeducationlms-4be5851e8ca4.json

@@ -35,10 +35,19 @@ import { CourseLanguageService } from './course/services/course-language.service
 import { CourseLanguageController } from './course/controller/course-language.controller';
 import { CourseLevelController } from './course/controller/course-level.controller';
 import { CourseLevelService } from './course/services/course-level.service';
+import { CurrencyController } from './currency/controller/currency.controller';
+import { CurrencyService } from './currency/services/currency.service';
+import { CustomerController } from './customer/controller/customer.controller';
+import { CustomerService } from './customer/services/customer.service';
+import { CommonModule } from 'src/common/common.module';
+import { DemoClassController } from './demo-class/controller/demo-class.controller';
+import { DemoClassService } from './demo-class/services/demo-class.service';
 
 @Module({
   imports: [
     AdminAuthModule,
+    CommonModule,
+
   ],
 
   controllers: [
@@ -56,7 +65,11 @@ import { CourseLevelService } from './course/services/course-level.service';
     CourseController,
     CourseDeleteRequestController,
     CourseLevelController,
-    CourseLanguageController
+    CourseLanguageController,
+    CurrencyController,
+    CustomerController,
+    DemoClassController
+
   ],
 
   providers: [
@@ -74,7 +87,11 @@ import { CourseLevelService } from './course/services/course-level.service';
     CourseService,
     CourseDeleteRequestService,
     CourseLanguageService,
-    CourseLevelService
+    CourseLevelService,
+    CurrencyService,
+    CustomerService,
+    DemoClassService
+
   ],
 })
 export class AdminModule {}

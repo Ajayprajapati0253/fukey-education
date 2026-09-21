@@ -8,6 +8,9 @@ import { CareerApplicationController } from './career/controller/career-applicat
 import { CareerApplicationService } from './career/services/career-application.service';
 import { CourseService } from './course/services/course.service';
 import { CourseController } from './course/controller/course.controller';
+import { DemoFilterController } from './demo-class/controller/demo-filter.controller';
+import { DemoClassService } from './demo-class/services/demo-class.service';
+import { DemoClassController } from './demo-class/controller/demo-class.controller';
 
 
 @Module({
@@ -16,7 +19,9 @@ import { CourseController } from './course/controller/course.controller';
     CartController,
     CareerApplicationController,
     CartController,
-    CourseController
+    CourseController,
+    DemoFilterController,
+    DemoClassController
 
 
   ],
@@ -26,7 +31,8 @@ import { CourseController } from './course/controller/course.controller';
     PrismaService,
     CartService,
     CareerApplicationService,
-    CourseService
+    CourseService,
+    DemoClassService
   ],
 
   exports: [

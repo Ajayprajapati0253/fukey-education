@@ -42,6 +42,22 @@ import { CustomerService } from './customer/services/customer.service';
 import { CommonModule } from 'src/common/common.module';
 import { DemoClassController } from './demo-class/controller/demo-class.controller';
 import { DemoClassService } from './demo-class/services/demo-class.service';
+import { EbookService } from './ebooks/services/ebook.service';
+import { EbookController } from './ebooks/controller/ebook.controller';
+import { FaqController } from './faq/controller/faq.controller';
+import { FaqService } from './faq/services/faq.service';
+import { FooterSettingService } from './footer-setting/services/footer-setting.service';
+import { FooterSettingController } from './footer-setting/controller/footer-setting.controller';
+import { EmailSettingController } from './email-setting/controller/email-setting.controller';
+import { EmailSettingService } from './email-setting/services/email-setting.service';
+import { GeneralSettingController } from './general-setting/controller/general-setting.controller';
+import { GeneralSettingService } from './general-setting/services/general-setting.service';
+import { FreeCourseCategoryController } from './free-course/controller/free-course-category.controller';
+import { FreeCourseCategoryService } from './free-course/services/free-course-category.service';
+import { FreeCourseContentController } from './free-course/controller/free-course-content.controller';
+import { FreeCourseContentService } from './free-course/services/free-course-content.service';
+import { FreeCourseController } from './free-course/controller/free-course.controller';
+import { FreeCourseService } from './free-course/services/free-course.service';
 
 @Module({
   imports: [
@@ -68,7 +84,15 @@ import { DemoClassService } from './demo-class/services/demo-class.service';
     CourseLanguageController,
     CurrencyController,
     CustomerController,
-    DemoClassController
+    DemoClassController,
+    EbookController,
+    FaqController,
+    FooterSettingController,
+    EmailSettingController,
+    GeneralSettingController,
+    FreeCourseCategoryController,
+    FreeCourseContentController,
+    FreeCourseController
 
   ],
 
@@ -90,7 +114,16 @@ import { DemoClassService } from './demo-class/services/demo-class.service';
     CourseLevelService,
     CurrencyService,
     CustomerService,
-    DemoClassService
+    DemoClassService,
+    EbookService,
+    FaqService,
+    FooterSettingService,
+    EmailSettingService,
+    GeneralSettingService,
+    FreeCourseCategoryService,
+    FreeCourseContentService,
+    FreeCourseService
+    
 
   ],
 })

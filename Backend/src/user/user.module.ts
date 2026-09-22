@@ -11,6 +11,8 @@ import { CourseController } from './course/controller/course.controller';
 import { DemoFilterController } from './demo-class/controller/demo-filter.controller';
 import { DemoClassService } from './demo-class/services/demo-class.service';
 import { DemoClassController } from './demo-class/controller/demo-class.controller';
+import { EbookService } from './ebook/services/ebook.service';
+import { EbookController } from './ebook/controller/ebook.controller';
 
 
 @Module({
@@ -21,7 +23,8 @@ import { DemoClassController } from './demo-class/controller/demo-class.controll
     CartController,
     CourseController,
     DemoFilterController,
-    DemoClassController
+    DemoClassController,
+    EbookController
 
 
   ],
@@ -32,7 +35,8 @@ import { DemoClassController } from './demo-class/controller/demo-class.controll
     CartService,
     CareerApplicationService,
     CourseService,
-    DemoClassService
+    DemoClassService,
+    EbookService
   ],
 
   exports: [

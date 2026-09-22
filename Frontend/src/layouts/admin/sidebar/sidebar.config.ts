@@ -2,7 +2,6 @@ import {
   Home,
   BookOpen,
   Book,
-  Video,
   FileText,
   Newspaper,
   Briefcase,
@@ -11,9 +10,16 @@ import {
   ArrowLeftRight,
   UserPlus,
   Users,
+  LibraryBig, 
+  NotebookText, 
+  FileCheck, 
+  Sigma, 
+  ListTodo,
+  Database,
   MapPin,
   Layers,
   Sparkles,
+  Radio,
   PanelBottom,
   Menu as MenuIcon,
   PanelsTopLeft,
@@ -30,6 +36,7 @@ export interface SidebarItem {
   route: string;
   permission?: string;
   badge?: 'dot' | number;
+  children?: SidebarItem[]; 
 }
 
 export interface SidebarGroup {
@@ -60,37 +67,82 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         label: 'Manage courses',
         icon: BookOpen,
         route: '/admin/courses',
-        badge: 'dot',
+        // badge: 'dot',
+        children: [
+          { id: 'all-courses', label: 'All Courses', icon: BookOpen, route: '/admin/courses/all-courses' },
+          { id: 'course-classes', label: 'Classes', icon: BookOpen, route: '/admin/courses/classes' },
+          { id: 'course-sub-classes', label: 'sub-classes', icon: BookOpen, route: '/admin/courses/sub-classes' },
+        ],
       },
       {
         id: 'free-courses',
         label: 'Free courses',
         icon: Book,
         route: '/admin/free-courses',
+        children: [
+          { id: 'all-free-courses', label: 'all-free-courses', icon: Book, route: '/admin/free-courses/all-free-courses' },
+          { id: 'free-course-classes', label: 'Free-classes', icon: Book, route: '/admin/free-courses/classes' },
+          { id: 'free-course-sub-classes', label: 'Free-sub-classes', icon: Book, route: '/admin/free-courses/sub-classes' },
+        ],
       },
       {
         id: 'live-classes',
         label: 'Live classes',
-        icon: Video,
+        icon: Radio,
         route: '/admin/live-classes',
+        children: [
+          { id: 'live-classes', label: 'Live-classes', icon: Radio, route: '/admin/live-classes' },
+          { id: 'calender-views', label: 'Calendar Views', icon: Radio, route: '/admin/live-classes/calendar-views' },
+          { id: 'attendance', label: 'Attendance', icon: Radio, route: '/admin/live-classes/attendance' },
+          { id: 'recordings', label: 'Recordings', icon: Radio, route: '/admin/live-classes/recordings' },
+        ],
       },
       {
+          id: 'study-materials',
+          label: 'Study materials',
+          icon: LibraryBig,
+          route: '/admin/study-materials',
+          children: [
+            { id: 'study-materials', label: 'Study materials', icon: NotebookText, route: '/admin/study-materials' },
+            { id: 'notes', label: 'notes', icon: FileCheck, route: '/admin/study-materials/notes' },
+            { id: 'practice-questions', label: 'practice-questions', icon: FileCheck, route: '/admin/study-materials/practice-questions' },
+            { id: 'formula-sheets', label: 'Formula Sheets', icon: Sigma, route: '/admin/study-materials/formula-sheets' },
+            { id: 'mcq', label: 'Mcq', icon: ListTodo, route: '/admin/study-materials/mcq' },
+            { id: 'important-questions', label: 'Important Questions', icon: Sparkles, route: '/admin/study-materials/important-questions' },
+            { id: 'sample-papers', label: 'Sample Papers', icon: FileText, route: '/admin/study-materials/sample-papers' },
+            { id: 'test-series', label: 'Test Series', icon: Layers, route: '/admin/study-materials/test-series' },
+            { id: 'complete-question-bank', label: 'Complete Question Bank', icon: Database, route: '/admin/study-materials/complete-question-bank' },
+          ],
+        },
+      {
         id: 'manage-blogs',
-        label: 'Manage blogs',
+        label: 'Blogs',
         icon: FileText,
         route: '/admin/blogs',
+        children: [
+          { id: 'all-posts', label: 'All Posts', icon: FileText, route: '/admin/blogs/all-posts' },
+          { id: 'blog-categories', label: 'Categories', icon: FileText, route: '/admin/blogs/categories' },
+        ],
       },
       {
         id: 'manage-news',
-        label: 'Manage news',
+        label: 'News',
         icon: Newspaper,
         route: '/admin/news',
+        children: [
+          { id: 'latest-news', label: 'Latest News', icon: Newspaper, route: '/admin/news/latest-news' },
+          { id: 'press-releases', label: 'Press Releases', icon: Newspaper, route: '/admin/news/press-releases' },
+        ],
       },
       {
         id: 'manage-careers',
-        label: 'Manage careers',
+        label: 'Careers',
         icon: Briefcase,
         route: '/admin/careers',
+        children: [
+          { id: 'job-listings', label: 'Job Listings', icon: Briefcase, route: '/admin/careers/job-listings' },
+          { id: 'applications', label: 'Applications', icon: Briefcase, route: '/admin/careers/applications' },
+        ],
       },
     ],
   },

@@ -1,7 +1,7 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, ChevronRight, Star } from 'lucide-react';
 import type { TopPerformingCourse } from '../types/dashboard.types';
-import { useUIStore } from '../../../../store/ui.store';
+import { useNavigate } from 'react-router-dom';
 
 interface TopPerformingCoursesTableProps {
   courses?: TopPerformingCourse[];
@@ -14,7 +14,7 @@ export const TopPerformingCoursesTable: React.FC<TopPerformingCoursesTableProps>
   currency = 'INR',
   isLoading = false,
 }) => {
-  const { setCurrentRoute } = useUIStore();
+  const navigate = useNavigate();
   const currencySymbol = currency === 'INR' ? '₹' : '$';
 
   return (
@@ -28,7 +28,7 @@ export const TopPerformingCoursesTable: React.FC<TopPerformingCoursesTableProps>
           href="/admin/courses"
           onClick={(e) => {
             e.preventDefault();
-            setCurrentRoute('/admin/courses');
+            navigate('/admin/courses');
           }}
           className="text-xs font-semibold text-[#2451D9] dark:text-[#60A5FA] hover:underline flex items-center gap-1"
         >

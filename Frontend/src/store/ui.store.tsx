@@ -2,10 +2,16 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type ThemeMode = 'light' | 'dark';
 
+const MIN_SIDEBAR_WIDTH = 200;
+const MAX_SIDEBAR_WIDTH = 400;
+const DEFAULT_SIDEBAR_WIDTH = 260;
+
 interface UIContextType {
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: (val: boolean | ((prev: boolean) => boolean)) => void;
   toggleSidebar: () => void;
+  sidebarWidth: number;
+  setSidebarWidth: (width: number) => void;
   isMobileSidebarOpen: boolean;
   setIsMobileSidebarOpen: (val: boolean) => void;
   searchQuery: string;
@@ -14,8 +20,6 @@ interface UIContextType {
   setLanguage: (lang: string) => void;
   currency: string;
   setCurrency: (curr: string) => void;
-  currentRoute: string;
-  setCurrentRoute: (route: string) => void;
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
@@ -33,11 +37,23 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     }
   });
 
+  const [sidebarWidth, setSidebarWidthState] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('fukey_sidebar_width');
+      const parsed = saved ? Number(saved) : DEFAULT_SIDEBAR_WIDTH;
+      if (Number.isFinite(parsed)) {
+        return Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, parsed));
+      }
+      return DEFAULT_SIDEBAR_WIDTH;
+    } catch {
+      return DEFAULT_SIDEBAR_WIDTH;
+    }
+  });
+
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [language, setLanguage] = useState('EN');
   const [currency, setCurrency] = useState('INR');
-  const [currentRoute, setCurrentRoute] = useState('/admin/dashboard');
 
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     try {
@@ -62,6 +78,14 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
   useEffect(() => {
     try {
+      localStorage.setItem('fukey_sidebar_width', String(sidebarWidth));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [sidebarWidth]);
+
+  useEffect(() => {
+    try {
       localStorage.setItem('fukey_theme', theme);
       const root = document.documentElement;
       if (theme === 'dark') {
@@ -73,6 +97,11 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       // Ignore storage/DOM errors
     }
   }, [theme]);
+
+  const setSidebarWidth = (width: number) => {
+    const clamped = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width));
+    setSidebarWidthState(clamped);
+  };
 
   const setTheme = (newTheme: ThemeMode) => {
     setThemeState(newTheme);
@@ -92,6 +121,8 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         isSidebarCollapsed,
         setIsSidebarCollapsed,
         toggleSidebar,
+        sidebarWidth,
+        setSidebarWidth,
         isMobileSidebarOpen,
         setIsMobileSidebarOpen,
         searchQuery,
@@ -100,8 +131,6 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setLanguage,
         currency,
         setCurrency,
-        currentRoute,
-        setCurrentRoute,
         theme,
         setTheme,
         toggleTheme,

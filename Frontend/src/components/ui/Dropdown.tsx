@@ -13,6 +13,7 @@ interface DropdownProps<T extends string = string> {
   onChange: (value: T) => void;
   icon?: React.ReactNode;
   variant?: 'outline' | 'ghost' | 'primary';
+  size?: 'sm' | 'lg';
   className?: string;
 }
 
@@ -22,6 +23,7 @@ export function Dropdown<T extends string = string>({
   onChange,
   icon,
   variant = 'outline',
+  size = 'sm',
   className = '',
 }: DropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,9 +42,16 @@ export function Dropdown<T extends string = string>({
   }, []);
 
   const variantStyles = {
-    outline: 'bg-white dark:bg-[#1E293B] border border-[#E6E8EE] dark:border-[#334155] text-[#12141C] dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/60',
-    ghost: 'bg-transparent text-[#686E7D] dark:text-gray-400 hover:text-[#12141C] dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800',
+    outline:
+      'bg-white dark:bg-[#1E293B] border border-[#E6E8EE] dark:border-[#334155] text-[#12141C] dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/60',
+    ghost:
+      'bg-transparent text-[#686E7D] dark:text-gray-400 hover:text-[#12141C] dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800',
     primary: 'bg-[#2451D9] text-white hover:bg-[#1E44B8]',
+  };
+
+  const sizeStyles = {
+    sm: { button: 'px-3 py-1.5 text-xs', icon: 'w-3.5 h-3.5', menuText: 'text-xs' },
+    lg: { button: 'px-3.5 py-2 text-[13.5px]', icon: 'w-3.5 h-3.5', menuText: 'text-[13.5px]' },
   };
 
   return (
@@ -50,11 +59,17 @@ export function Dropdown<T extends string = string>({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 ${variantStyles[variant]}`}
+        className={`w-full flex items-center justify-between gap-1.5 rounded-lg font-medium transition-colors duration-150 ${sizeStyles[size].button} ${variantStyles[variant]}`}
       >
-        {icon || selectedOption?.icon}
-        <span>{selectedOption?.label || value}</span>
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="flex items-center gap-1.5 truncate">
+          {icon || selectedOption?.icon}
+          <span className="truncate">{selectedOption?.label || value}</span>
+        </span>
+        <ChevronDown
+          className={`${sizeStyles[size].icon} shrink-0 transition-transform duration-200 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+        />
       </button>
 
       {isOpen && (
@@ -67,7 +82,7 @@ export function Dropdown<T extends string = string>({
                 onChange(opt.value);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-3.5 py-2 text-xs flex items-center gap-2 transition-colors ${
+              className={`w-full text-left px-3.5 py-2 flex items-center gap-2 transition-colors ${sizeStyles[size].menuText} ${
                 opt.value === value
                   ? 'bg-[#EAF0FE] dark:bg-[#2451D9]/20 text-[#2451D9] dark:text-[#60A5FA] font-bold'
                   : 'text-[#12141C] dark:text-gray-200 hover:bg-[#F6F7FA] dark:hover:bg-gray-700/50'

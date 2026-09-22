@@ -3,7 +3,7 @@ import { ChevronRight, Clock, ArrowRight } from 'lucide-react';
 import { Avatar } from '../../../../components/ui/Avatar';
 import { Badge } from '../../../../components/ui/Badge';
 import type { UpcomingLiveClass } from '../types/dashboard.types';
-import { useUIStore } from '../../../../store/ui.store';
+import { useNavigate } from 'react-router-dom';
 
 interface UpcomingLiveClassesPanelProps {
   classes?: UpcomingLiveClass[];
@@ -14,11 +14,11 @@ export const UpcomingLiveClassesPanel: React.FC<UpcomingLiveClassesPanelProps> =
   classes = [],
   isLoading = false,
 }) => {
-  const { setCurrentRoute } = useUIStore();
+  const navigate = useNavigate();
 
   const handleNavigate = (e: React.MouseEvent) => {
     e.preventDefault();
-    setCurrentRoute('/admin/live-classes');
+    navigate('/admin/live-classes');
   };
 
   return (

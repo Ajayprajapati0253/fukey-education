@@ -71,7 +71,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         children: [
           { id: 'all-courses', label: 'All Courses', icon: BookOpen, route: '/admin/courses/all-courses' },
           { id: 'course-classes', label: 'Classes', icon: BookOpen, route: '/admin/courses/classes' },
-          { id: 'course-sub-classes', label: 'sub-classes', icon: BookOpen, route: '/admin/courses/sub-classes' },
+          { id: 'course-subjects', label: 'subjects', icon: BookOpen, route: '/admin/courses/subjects' },
         ],
       },
       {
@@ -82,7 +82,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         children: [
           { id: 'all-free-courses', label: 'all-free-courses', icon: Book, route: '/admin/free-courses/all-free-courses' },
           { id: 'free-course-classes', label: 'Free-classes', icon: Book, route: '/admin/free-courses/classes' },
-          { id: 'free-course-sub-classes', label: 'Free-sub-classes', icon: Book, route: '/admin/free-courses/sub-classes' },
+          { id: 'free-course-subjects', label: 'Free-subjects', icon: Book, route: '/admin/free-courses/subjects' },
         ],
       },
       {

@@ -8,6 +8,7 @@ import { CoursesPage } from './features/courses/pages/CoursesPage';
 import { BlogsPage } from './features/blogs/pages/BlogsPage';
 import  LiveClassesPage  from './features/live-classes/pages/LiveClassesPage';
 import { CalendarViewsPage } from './features/calendar-views/pages/CalendarViewsPage';
+import { AttendancePage } from './features/attendance/pages/AttendancePage';
 
 const VALID_ROUTES = new Set<string>();
 SIDEBAR_GROUPS.forEach((group) => {
@@ -100,6 +101,7 @@ export default function App() {
           <Route index element={<LiveClassesPage />} />
           <Route path="live-classes" element={<LiveClassesPage />} />
           <Route path="calendar-views" element={<CalendarViewsPage />} />
+          <Route path="attendance" element={<AttendancePage />} />
         </Route>
         <Route path="*" element={<AdminCatchAll />} />
       </Route>

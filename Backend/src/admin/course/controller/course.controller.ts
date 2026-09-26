@@ -105,4 +105,13 @@ removeChapter(@Param('id', ParseIntPipe) id: number) {
   return this.courseService.removeChapter(id.toString());
 }
 
+@Get(':courseId/chapters')
+findChaptersByCourseId(
+  @Param('courseId', ParseIntPipe) courseId: number,
+) {
+  return this.courseService.findChaptersByCourseId(
+    courseId.toString(),
+  );
+}
+
 }

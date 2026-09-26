@@ -2130,3 +2130,4 @@ enum courses_is_approved {
   approved
   rejected
 }
+

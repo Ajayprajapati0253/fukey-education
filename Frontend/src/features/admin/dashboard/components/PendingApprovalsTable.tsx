@@ -2,7 +2,7 @@ import React from 'react';
 import { Eye, ChevronRight } from 'lucide-react';
 import { Badge, type BadgeVariant } from '../../../../components/ui/Badge';
 import type { PendingApprovalCourse } from '../types/dashboard.types';
-import { useUIStore } from '../../../../store/ui.store';
+import { useNavigate } from 'react-router-dom';
 
 interface PendingApprovalsTableProps {
   courses?: PendingApprovalCourse[];
@@ -20,7 +20,7 @@ export const PendingApprovalsTable: React.FC<PendingApprovalsTableProps> = ({
   courses = [],
   isLoading = false,
 }) => {
-  const { setCurrentRoute } = useUIStore();
+  const navigate = useNavigate();
 
   return (
     <div className="bg-white dark:bg-[#1E293B] p-5 sm:p-6 rounded-2xl border border-[#E6E8EE] dark:border-[#334155] flex flex-col justify-between shadow-[0_1px_3px_rgba(0,0,0,0.02)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
@@ -31,7 +31,7 @@ export const PendingApprovalsTable: React.FC<PendingApprovalsTableProps> = ({
           href="/admin/courses"
           onClick={(e) => {
             e.preventDefault();
-            setCurrentRoute('/admin/courses');
+           navigate('/admin/courses');s
           }}
           className="text-xs font-semibold text-[#2451D9] dark:text-[#60A5FA] hover:underline flex items-center gap-1"
         >

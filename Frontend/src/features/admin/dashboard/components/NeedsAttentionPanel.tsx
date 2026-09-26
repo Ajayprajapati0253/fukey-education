@@ -10,7 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { NeedsAttentionItem } from '../types/dashboard.types';
-import { useUIStore } from '../../../../store/ui.store';
+import { useNavigate } from 'react-router-dom';
 
 interface NeedsAttentionPanelProps {
   items?: NeedsAttentionItem[];
@@ -72,7 +72,7 @@ export const NeedsAttentionPanel: React.FC<NeedsAttentionPanelProps> = ({
   items = [],
   isLoading = false,
 }) => {
-  const { setCurrentRoute } = useUIStore();
+  const navigate = useNavigate();
 
   return (
     <div className="bg-white dark:bg-[#1E293B] p-5 sm:p-6 rounded-2xl border border-border-subtle dark:border-[#334155] flex flex-col justify-between shadow-[0_1px_3px_rgba(0,0,0,0.02)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
@@ -102,7 +102,7 @@ export const NeedsAttentionPanel: React.FC<NeedsAttentionPanelProps> = ({
                   href={item.route}
                   onClick={(e) => {
                     e.preventDefault();
-                    setCurrentRoute(item.route);
+                    navigate(item.route);
                   }}
                   className="flex items-center justify-between group py-0.5 rounded-xl transition-colors select-none"
                 >

@@ -10,7 +10,7 @@ import {
   Ticket,
   type LucideIcon,
 } from 'lucide-react';
-import { useUIStore } from '../../../../store/ui.store';
+import { useNavigate } from 'react-router-dom';
 
 interface QuickActionItem {
   id: string;
@@ -85,11 +85,11 @@ interface QuickActionsBarProps {
 }
 
 export const QuickActionsBar: React.FC<QuickActionsBarProps> = ({ onActionClick }) => {
-  const { setCurrentRoute } = useUIStore();
+  const navigate = useNavigate();
 
   const handleClick = (e: React.MouseEvent, action: QuickActionItem) => {
     e.preventDefault();
-    setCurrentRoute(action.route);
+     navigate(action.route);
     if (onActionClick) {
       onActionClick(action.id, action.route);
     }

@@ -58,6 +58,8 @@ import { FreeCourseContentController } from './free-course/controller/free-cours
 import { FreeCourseContentService } from './free-course/services/free-course-content.service';
 import { FreeCourseController } from './free-course/controller/free-course.controller';
 import { FreeCourseService } from './free-course/services/free-course.service';
+import { CourseSubCategoryController } from './course/controller/course-sub-category.controller';
+import { CourseSubCategoryService } from './course/services/course-sub-category.service';
 
 @Module({
   imports: [
@@ -92,7 +94,8 @@ import { FreeCourseService } from './free-course/services/free-course.service';
     GeneralSettingController,
     FreeCourseCategoryController,
     FreeCourseContentController,
-    FreeCourseController
+    FreeCourseController,
+    CourseSubCategoryController
 
   ],
 
@@ -122,7 +125,8 @@ import { FreeCourseService } from './free-course/services/free-course.service';
     GeneralSettingService,
     FreeCourseCategoryService,
     FreeCourseContentService,
-    FreeCourseService
+    FreeCourseService,
+    CourseSubCategoryService
     
 
   ],

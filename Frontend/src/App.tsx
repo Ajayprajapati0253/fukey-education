@@ -31,6 +31,8 @@ import {
 
 import CategoriesPage from './features/categories/pages/CategoriesPage';
 import CareerApplicationsPage from './features/career-applications/pages/CareerApplicationsPage';
+import CareerJobListingsPage from './features/careers/pages/CareerJobListingsPage';
+import CouponsPage from './features/coupons/pages/CouponsPage';
 
 const VALID_ROUTES = new Set<string>();
 
@@ -230,6 +232,37 @@ export default function App() {
         />
 
         {/* =================================
+            FREE COURSES
+           ================================= */}
+        <Route path="free-courses">
+
+          <Route
+            index
+            element={<CoursesPage />}
+          />
+
+          <Route
+            path="all-courses"
+            element={<CoursesPage />}
+          />
+
+          <Route
+            path="classes"
+            element={<CategoriesPage />}
+          />
+
+          <Route
+            path="subjects"
+            element={<CourseSubCategoriesPage />}
+          />
+
+          <Route
+            path="medium"
+            element={<CourseLanguagesPage />}
+          />
+
+        </Route>
+        {/* =================================
             BLOGS
            ================================= */}
         <Route path="blogs">
@@ -290,9 +323,14 @@ export default function App() {
           />
 
           {/* /admin/careers/job-listings */}
-          <Route
+          {/* <Route
             path="job-listings"
             element={<PlaceholderPage />}
+          /> */}
+          
+          <Route
+            path="job-listings"
+            element={<CareerJobListingsPage />}
           />
 
           {/* /admin/careers/applications */}
@@ -302,6 +340,11 @@ export default function App() {
           />
 
         </Route>
+
+        <Route
+          path="coupons"
+          element={<CouponsPage />}
+        />
 
         {/* =================================
             ADMIN CATCH-ALL

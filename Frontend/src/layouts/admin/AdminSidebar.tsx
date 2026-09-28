@@ -174,6 +174,7 @@ export const AdminSidebar: React.FC = () => {
 
                 {item.children!.map((child) => {
                   const isChildActive = isRouteActive(child.route, currentRoute);
+                  const ChildIcon = child.icon;   // ⬅ add this
 
                   return (
                     <div key={child.id} className="relative">
@@ -191,7 +192,17 @@ export const AdminSidebar: React.FC = () => {
                             : 'text-[#64748b] dark:text-gray-400 hover:text-ink dark:hover:text-white hover:bg-app-bg dark:hover:bg-gray-800/60 font-medium'
                         }`}
                       >
-                        <span className="truncate">{child.label}</span>
+                        <div className="flex items-center gap-2 min-w-0">        {/* ⬅ wrap icon+label */}
+                          <ChildIcon
+                            strokeWidth={1.8}
+                            className={`w-[15px] h-[15px] shrink-0 transition-colors ${
+                              isChildActive
+                                ? 'text-[#4f46e5] dark:text-[#818CF8]'
+                                : 'text-[#94a3b8] dark:text-gray-500'
+                            }`}
+                          />
+                          <span className="truncate">{child.label}</span>
+                        </div>
                         {isChildActive && (
                           <span className="w-2 h-2 rounded-full bg-[#4f46e5] dark:bg-[#818CF8] shrink-0 ml-2" />
                         )}
@@ -199,6 +210,7 @@ export const AdminSidebar: React.FC = () => {
                     </div>
                   );
                 })}
+
               </div>
             )}
           </div>

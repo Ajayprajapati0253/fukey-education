@@ -3,9 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Repeat,
-  Radio,
   Clock,
-  CheckCircle2,
   XCircle,
   Video,
   Play,
@@ -13,12 +11,12 @@ import {
   CalendarDays,
   CalendarClock,
   List as ListIcon,
-  Grid as GridIcon,
+  // Grid as GridIcon,
   Bell,
-  MoreVertical,
+  // MoreVertical,
   User,
   Users,
-  ExternalLink,
+  // ExternalLink,
 } from 'lucide-react';
 import type { CalendarLiveClass, CalendarViewMode, CalendarClassStatus } from '../types/calendar-live-class.types';
 

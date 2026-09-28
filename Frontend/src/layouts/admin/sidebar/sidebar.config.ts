@@ -2,6 +2,11 @@ import {
   Home,
   BookOpen,
   Book,
+  Presentation,
+  UserCheck,
+  UserX,
+  Ban,
+  Mail,
   FileText,
   Newspaper,
   Briefcase,
@@ -10,10 +15,10 @@ import {
   ArrowLeftRight,
   UserPlus,
   Users,
-  LibraryBig, 
-  NotebookText, 
-  FileCheck, 
-  Sigma, 
+  LibraryBig,
+  NotebookText,
+  FileCheck,
+  Sigma,
   ListTodo,
   Database,
   MapPin,
@@ -26,6 +31,15 @@ import {
   Share2,
   HelpCircle,
   Settings,
+  School,
+  Tag,
+  Tags,
+  CalendarDays,
+  ClipboardCheck,
+  Video,
+  StickyNote,
+  Megaphone,
+  ClipboardList,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -36,7 +50,7 @@ export interface SidebarItem {
   route: string;
   permission?: string;
   badge?: 'dot' | number;
-  children?: SidebarItem[]; 
+  children?: SidebarItem[];
 }
 
 export interface SidebarGroup {
@@ -67,11 +81,10 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         label: 'Manage courses',
         icon: BookOpen,
         route: '/admin/courses',
-        // badge: 'dot',
         children: [
           { id: 'all-courses', label: 'All Courses', icon: BookOpen, route: '/admin/courses/all-courses' },
-          { id: 'course-classes', label: 'Classes', icon: BookOpen, route: '/admin/courses/classes' },
-          { id: 'course-subjects', label: 'subjects', icon: BookOpen, route: '/admin/courses/subjects' },
+          { id: 'course-classes', label: 'Classes', icon: School, route: '/admin/courses/classes' },
+          { id: 'course-subjects', label: 'subjects', icon: Tag, route: '/admin/courses/subjects' },
         ],
       },
       {
@@ -81,8 +94,8 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         route: '/admin/free-courses',
         children: [
           { id: 'all-free-courses', label: 'all-free-courses', icon: Book, route: '/admin/free-courses/all-free-courses' },
-          { id: 'free-course-classes', label: 'Free-classes', icon: Book, route: '/admin/free-courses/classes' },
-          { id: 'free-course-subjects', label: 'Free-subjects', icon: Book, route: '/admin/free-courses/subjects' },
+          { id: 'free-course-classes', label: 'Free-classes', icon: School, route: '/admin/free-courses/classes' },
+          { id: 'free-course-subjects', label: 'Free-subjects', icon: Tag, route: '/admin/free-courses/subjects' },
         ],
       },
       {
@@ -92,28 +105,28 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         route: '/admin/live-classes',
         children: [
           { id: 'live-classes', label: 'Live-classes', icon: Radio, route: '/admin/live-classes' },
-          { id: 'calender-views', label: 'Calendar Views', icon: Radio, route: '/admin/live-classes/calendar-views' },
-          { id: 'attendance', label: 'Attendance', icon: Radio, route: '/admin/live-classes/attendance' },
-          { id: 'recordings', label: 'Recordings', icon: Radio, route: '/admin/live-classes/recordings' },
+          { id: 'calender-views', label: 'Calendar Views', icon: CalendarDays, route: '/admin/live-classes/calendar-views' },
+          { id: 'attendance', label: 'Attendance', icon: ClipboardCheck, route: '/admin/live-classes/attendance' },
+          { id: 'recordings', label: 'Recordings', icon: Video, route: '/admin/live-classes/recordings' },
         ],
       },
       {
-          id: 'study-materials',
-          label: 'Study materials',
-          icon: LibraryBig,
-          route: '/admin/study-materials',
-          children: [
-            { id: 'study-materials', label: 'Study materials', icon: NotebookText, route: '/admin/study-materials' },
-            { id: 'notes', label: 'notes', icon: FileCheck, route: '/admin/study-materials/notes' },
-            { id: 'practice-questions', label: 'practice-questions', icon: FileCheck, route: '/admin/study-materials/practice-questions' },
-            { id: 'formula-sheets', label: 'Formula Sheets', icon: Sigma, route: '/admin/study-materials/formula-sheets' },
-            { id: 'mcq', label: 'Mcq', icon: ListTodo, route: '/admin/study-materials/mcq' },
-            { id: 'important-questions', label: 'Important Questions', icon: Sparkles, route: '/admin/study-materials/important-questions' },
-            { id: 'sample-papers', label: 'Sample Papers', icon: FileText, route: '/admin/study-materials/sample-papers' },
-            { id: 'test-series', label: 'Test Series', icon: Layers, route: '/admin/study-materials/test-series' },
-            { id: 'complete-question-bank', label: 'Complete Question Bank', icon: Database, route: '/admin/study-materials/complete-question-bank' },
-          ],
-        },
+        id: 'study-materials',
+        label: 'Study materials',
+        icon: LibraryBig,
+        route: '/admin/study-materials',
+        children: [
+          { id: 'study-materials', label: 'Study materials', icon: NotebookText, route: '/admin/study-materials' },
+          { id: 'notes', label: 'notes', icon: StickyNote, route: '/admin/study-materials/notes' },
+          { id: 'practice-questions', label: 'practice-questions', icon: FileCheck, route: '/admin/study-materials/practice-questions' },
+          { id: 'formula-sheets', label: 'Formula Sheets', icon: Sigma, route: '/admin/study-materials/formula-sheets' },
+          { id: 'mcq', label: 'Mcq', icon: ListTodo, route: '/admin/study-materials/mcq' },
+          { id: 'important-questions', label: 'Important Questions', icon: Sparkles, route: '/admin/study-materials/important-questions' },
+          { id: 'sample-papers', label: 'Sample Papers', icon: FileText, route: '/admin/study-materials/sample-papers' },
+          { id: 'test-series', label: 'Test Series', icon: Layers, route: '/admin/study-materials/test-series' },
+          { id: 'complete-question-bank', label: 'Complete Question Bank', icon: Database, route: '/admin/study-materials/complete-question-bank' },
+        ],
+      },
       {
         id: 'manage-blogs',
         label: 'Blogs',
@@ -121,7 +134,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         route: '/admin/blogs',
         children: [
           { id: 'all-posts', label: 'All Posts', icon: FileText, route: '/admin/blogs/all-posts' },
-          { id: 'blog-categories', label: 'Categories', icon: FileText, route: '/admin/blogs/categories' },
+          { id: 'blog-categories', label: 'Categories', icon: Tags, route: '/admin/blogs/categories' },
         ],
       },
       {
@@ -131,7 +144,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         route: '/admin/news',
         children: [
           { id: 'latest-news', label: 'Latest News', icon: Newspaper, route: '/admin/news/latest-news' },
-          { id: 'press-releases', label: 'Press Releases', icon: Newspaper, route: '/admin/news/press-releases' },
+          { id: 'press-releases', label: 'Press Releases', icon: Megaphone, route: '/admin/news/press-releases' },
         ],
       },
       {
@@ -141,7 +154,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         route: '/admin/careers',
         children: [
           { id: 'job-listings', label: 'Job Listings', icon: Briefcase, route: '/admin/careers/job-listings' },
-          { id: 'applications', label: 'Applications', icon: Briefcase, route: '/admin/careers/applications' },
+          { id: 'applications', label: 'Applications', icon: ClipboardList, route: '/admin/careers/applications' },
         ],
       },
     ],
@@ -185,6 +198,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         label: 'Manage users',
         icon: Users,
         route: '/admin/users',
+        children: [
+          { id: 'students', label: 'Students', icon: Users, route: '/admin/users/students' },
+          { id: 'instructors', label: 'Instructors', icon: Presentation, route: '/admin/users/instructors' },
+          { id: 'active-users', label: 'Active Users', icon: UserCheck, route: '/admin/users/active' },
+          { id: 'non-verified', label: 'Non Verified', icon: UserX, route: '/admin/users/non-verified' },
+          { id: 'banned-users', label: 'Banned Users', icon: Ban, route: '/admin/users/banned' },
+          { id: 'send-bulk-mail', label: 'Send Bulk Mail', icon: Mail, route: '/admin/users/bulk-mail' },
+        ],
       },
       {
         id: 'locations',

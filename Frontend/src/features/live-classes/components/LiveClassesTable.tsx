@@ -12,7 +12,8 @@ import {
   XCircle,
   Eye,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Video
 } from 'lucide-react';
 import type { LiveClass, PlatformType } from '../types/live-class.types';
 
@@ -153,13 +154,22 @@ export const LiveClassesTable: React.FC<LiveClassesTableProps> = ({
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
                       {/* Class Thumbnail */}
-                      <div className="relative h-12 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-900 shadow-2xs">
-                        <img
-                          src={cls.thumbnail}
-                          alt={cls.title}
-                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        {cls.status === 'Live' && (
+                        <div className="relative h-12 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-900 shadow-2xs">
+                          {cls.thumbnail ? (
+                            <img
+                              src={cls.thumbnail}
+                              alt={cls.title}
+                              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-slate-100 dark:bg-slate-800">
+                              <Video
+                                className="h-5 w-5 text-slate-400 dark:text-slate-500"
+                              />
+                            </div>
+                          )}
+
+                          {cls.status === 'Live' && (
                           <div className="absolute bottom-1 right-1 flex items-center gap-1 rounded bg-red-600/90 px-1 py-0.5 text-[9px] font-bold text-white shadow-xs">
                             <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
                             LIVE
@@ -188,15 +198,24 @@ export const LiveClassesTable: React.FC<LiveClassesTableProps> = ({
                   {/* Instructor */}
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2.5">
-                      <img
-                        src={cls.instructor.avatar}
-                        alt={cls.instructor.name}
-                        className="h-8 w-8 rounded-full object-cover ring-1 ring-slate-200 dark:ring-[#334155]"
-                      />
-                      <span className="font-semibold text-slate-800 dark:text-gray-200 truncate max-w-[130px]">
-                        {cls.instructor.name}
-                      </span>
-                    </div>
+  {cls.instructor.avatar ? (
+    <img
+      src={cls.instructor.avatar}
+      alt={cls.instructor.name}
+      className="h-8 w-8 rounded-full object-cover ring-1 ring-slate-200 dark:ring-[#334155]"
+    />
+  ) : (
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600 ring-1 ring-slate-200 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-[#334155]">
+      {cls.instructor.name
+        ?.charAt(0)
+        .toUpperCase() || '?'}
+    </div>
+  )}
+
+  <span className="max-w-[130px] truncate font-semibold text-slate-800 dark:text-gray-200">
+    {cls.instructor.name}
+  </span>
+                      </div>
                   </td>
 
                   {/* Course */}

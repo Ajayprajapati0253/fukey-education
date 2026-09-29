@@ -49,16 +49,35 @@ export function useCalendarLiveClasses() {
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
 
   // Filters state
-  const [filters, setFilters] = useState<CalendarLiveClassesFilterState>({
+const getCurrentMonthRange = () => {
+  const now = new Date();
+
+  const start = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1,
+  );
+
+  const end = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0,
+  );
+
+  return {
+    start: formatLocalDate(start),
+    end: formatLocalDate(end),
+  };
+};
+
+const [filters, setFilters] =
+  useState<CalendarLiveClassesFilterState>(() => ({
     searchQuery: '',
     teacherId: 'all',
     courseId: 'all',
     status: 'all',
-    dateRange: {
-      start: '2026-08-01',
-      end: '2026-08-31',
-    },
-  });
+    dateRange: getCurrentMonthRange(),
+  }));
 
   // Load initial classes
   const loadClasses = useCallback(async () => {
@@ -282,7 +301,7 @@ export function useCalendarLiveClasses() {
 
       return true;
     });
-  }, [classes, filters]);
+  }, [classes, filters, viewMode, weekDays]);
 
   // Weekly KPIs calculation matching image
   const weeklyKPIs: CalendarWeeklyKPISummary = useMemo(() => {
@@ -291,7 +310,7 @@ export function useCalendarLiveClasses() {
     const weekClasses = classes.filter((c) => currentWeekDates.has(c.date));
 
     // If viewing the screenshot's Aug 18-24 week, ensure exact numbers (24, 7, 8, 6, 3)
-    const total = weekClasses.length || 24;
+    const total = weekClasses.length;
     const live = weekClasses.filter((c) => c.status === 'live').length;
     const scheduled = weekClasses.filter((c) => c.status === 'scheduled').length;
     const completed = weekClasses.filter((c) => c.status === 'completed').length;
@@ -373,7 +392,7 @@ export function useCalendarLiveClasses() {
       teacherId: 'all',
       courseId: 'all',
       status: 'all',
-      dateRange: { start: '2026-08-01', end: '2026-09-30' },
+      dateRange: getCurrentMonthRange(),
     });
     showToast('Timetable Reset', 'Restored initial scheduled classes dataset', 'info');
   };

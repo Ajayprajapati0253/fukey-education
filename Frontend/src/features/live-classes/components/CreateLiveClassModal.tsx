@@ -1,434 +1,784 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   Calendar,
-  Clock,
-  Video,
-  User,
-  BookOpen,
-  Layers,
   Repeat,
-  Link,
+  Video,
+  BookOpen,
   Users,
-  CheckCircle2,
-  FileText
+  Link,
 } from 'lucide-react';
-import type { LiveClass, PlatformType } from '../types/live-class.types';
-import { INSTRUCTORS, COURSES, CATEGORIES } from '../data/InitialLiveClasses';
+
+import type { PlatformType } from '../types/live-class.types';
+import type { CreateLiveClassPayload } from '../api/live-class.api';
 
 interface CreateLiveClassModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (newClass: Omit<LiveClass, 'id' | 'index'>) => void;
+  onSave: (payload: CreateLiveClassPayload) => Promise<void> | void;
   initialType?: 'one-time' | 'recurring';
 }
 
-export const CreateLiveClassModal: React.FC<CreateLiveClassModalProps> = ({
+export const CreateLiveClassModal: React.FC<
+  CreateLiveClassModalProps
+> = ({
   isOpen,
   onClose,
   onSave,
-  initialType = 'one-time'
+  initialType = 'one-time',
 }) => {
-  const [classType, setClassType] = useState<'one-time' | 'recurring'>(initialType);
+  const [classType, setClassType] = useState<
+    'one-time' | 'recurring'
+  >(initialType);
+
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('Science');
-  const [course, setCourse] = useState('Class 11 Science');
-  const [instructorId, setInstructorId] = useState(INSTRUCTORS[0].id);
-  const [platform, setPlatform] = useState<PlatformType>('YouTube');
-  const [meetingUrl, setMeetingUrl] = useState('');
-  const [date, setDate] = useState('2026-08-15');
+
+  const [instructorId, setInstructorId] = useState('');
+
+  const [courseId, setCourseId] = useState('');
+
+  const [freeCourseId, setFreeCourseId] = useState('');
+
+  const [platform, setPlatform] =
+    useState<PlatformType>('Jitsi');
+
+  const [youtubeVideoId, setYoutubeVideoId] =
+    useState('');
+
+  const [date, setDate] = useState('');
+
   const [time, setTime] = useState('16:00');
+
   const [duration, setDuration] = useState('60');
-  const [capacity, setCapacity] = useState('250');
+
   const [description, setDescription] = useState('');
 
-  // Recurring options
-  const [recurrenceFreq, setRecurrenceFreq] = useState<'daily' | 'weekly' | 'weekdays' | 'custom'>('weekly');
-  const [selectedDays, setSelectedDays] = useState<string[]>(['Mon', 'Wed', 'Fri']);
-  const [startDate, setStartDate] = useState('2026-08-15');
-  const [endDate, setEndDate] = useState('2026-10-15');
+  const [recurrenceFreq, setRecurrenceFreq] =
+    useState<
+      'daily' | 'weekly' | 'weekdays' | 'custom'
+    >('weekly');
 
-  if (!isOpen) return null;
+  const [selectedDays, setSelectedDays] =
+    useState<string[]>([
+      'Mon',
+      'Wed',
+      'Fri',
+    ]);
 
-  const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const [startDate, setStartDate] = useState('');
+
+  const [endDate, setEndDate] = useState('');
+
+  const [saving, setSaving] = useState(false);
+
+  const [error, setError] = useState('');
+
+  const weekDays = [
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+    'Sun',
+  ];
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const today = new Date();
+
+    const yyyy = today.getFullYear();
+    const mm = String(
+      today.getMonth() + 1,
+    ).padStart(2, '0');
+    const dd = String(
+      today.getDate(),
+    ).padStart(2, '0');
+
+    const todayString =
+      `${yyyy}-${mm}-${dd}`;
+
+    setClassType(initialType);
+
+    setTitle('');
+    setInstructorId('');
+    setCourseId('');
+    setFreeCourseId('');
+    setPlatform('Jitsi');
+    setYoutubeVideoId('');
+
+    setDate(todayString);
+    setStartDate(todayString);
+    setEndDate('');
+
+    setTime('16:00');
+    setDuration('60');
+    setDescription('');
+
+    setRecurrenceFreq('weekly');
+    setSelectedDays([
+      'Mon',
+      'Wed',
+      'Fri',
+    ]);
+
+    setError('');
+    setSaving(false);
+  }, [isOpen, initialType]);
+
+  if (!isOpen) {
+    return null;
+  }
 
   const toggleDay = (day: string) => {
-    if (selectedDays.includes(day)) {
-      setSelectedDays(selectedDays.filter((d) => d !== day));
-    } else {
-      setSelectedDays([...selectedDays, day]);
+    setSelectedDays((previous) => {
+      if (previous.includes(day)) {
+        return previous.filter(
+          (item) => item !== day,
+        );
+      }
+
+      return [...previous, day];
+    });
+  };
+
+  const handleSubmit = async (
+    e: React.FormEvent,
+  ) => {
+    e.preventDefault();
+
+    setError('');
+
+    if (!title.trim()) {
+      setError('Class title is required.');
+      return;
+    }
+
+    if (!instructorId) {
+      setError('Instructor ID is required.');
+      return;
+    }
+
+    if (platform === 'Jitsi' && !courseId) {
+      setError(
+        'Course ID is required for Jitsi live class.',
+      );
+      return;
+    }
+
+    if (
+      platform === 'YouTube' &&
+      !freeCourseId
+    ) {
+      setError(
+        'Free Course ID is required for YouTube live class.',
+      );
+      return;
+    }
+
+    if (
+      platform === 'YouTube' &&
+      !youtubeVideoId.trim()
+    ) {
+      setError(
+        'YouTube Video ID is required.',
+      );
+      return;
+    }
+
+    if (!date && classType === 'one-time') {
+      setError('Class date is required.');
+      return;
+    }
+
+    if (
+      classType === 'recurring' &&
+      selectedDays.length === 0
+    ) {
+      setError(
+        'Select at least one recurring day.',
+      );
+      return;
+    }
+
+    if (
+      classType === 'recurring' &&
+      !startDate
+    ) {
+      setError(
+        'Recurring start date is required.',
+      );
+      return;
+    }
+
+    if (
+      classType === 'recurring' &&
+      !endDate
+    ) {
+      setError(
+        'Recurring end date is required.',
+      );
+      return;
+    }
+
+    const parsedDuration =
+      Number(duration);
+
+    if (
+      !Number.isInteger(parsedDuration) ||
+      parsedDuration < 10
+    ) {
+      setError(
+        'Duration must be at least 10 minutes.',
+      );
+      return;
+    }
+
+    const actualStartDate =
+      classType === 'recurring'
+        ? startDate
+        : date;
+
+    const payload: CreateLiveClassPayload = {
+      title: title.trim(),
+
+      instructor: Number(
+        instructorId,
+      ),
+
+      platform:
+        platform === 'Jitsi'
+          ? 'jitsi'
+          : 'youtube',
+
+      duration: parsedDuration,
+
+      status: true,
+
+      start_time:
+        `${actualStartDate}T${time}:00`,
+
+      description:
+        description.trim() || undefined,
+    };
+
+    if (platform === 'Jitsi') {
+      payload.course_id =
+        Number(courseId);
+    }
+
+    if (platform === 'YouTube') {
+      payload.free_course_id =
+        Number(freeCourseId);
+
+      payload.youtube_video_id =
+        youtubeVideoId.trim();
+    }
+
+    if (classType === 'recurring') {
+      payload.recurring_days =
+        selectedDays;
+
+      payload.recurring_time =
+        time;
+
+      payload.end_date =
+        `${endDate}T23:59:59`;
+    }
+
+    try {
+      setSaving(true);
+
+      await onSave(payload);
+
+      onClose();
+    } catch (err) {
+      console.error(
+        'Create live class failed:',
+        err,
+      );
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to create live class.',
+      );
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-
-    const selectedInstructor = INSTRUCTORS.find((i) => i.id === instructorId) || INSTRUCTORS[0];
-
-    // Format Start Time
-    const parsedDate = new Date(`${date}T${time}`);
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const formattedStartTime = `${monthNames[parsedDate.getMonth()]} ${parsedDate.getDate()}, ${parsedDate.getFullYear()} ${time}`;
-
-    const defaultMeetingUrl = platform === 'Jitsi'
-      ? `https://meet.jit.si/fukey-live-${Date.now()}`
-      : `https://youtube.com/live/fukey-live-${Date.now()}`;
-
-    const newClassData: Omit<LiveClass, 'id' | 'index'> = {
-      title: title.trim(),
-      category,
-      course,
-      instructor: selectedInstructor,
-      platform,
-      meetingUrl: meetingUrl.trim() || defaultMeetingUrl,
-      startTime: formattedStartTime,
-      isoDateTime: `${date}T${time}:00`,
-      duration: parseInt(duration, 10) || 60,
-      status: 'Upcoming',
-      students: 0,
-      thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300&auto=format&fit=crop&q=80',
-      description: description.trim() || 'Interactive live session on Fukey Education platform.',
-      maxCapacity: parseInt(capacity, 10) || 300,
-      ...(classType === 'recurring' && {
-        recurring: {
-          isRecurring: true,
-          frequency: recurrenceFreq,
-          days: selectedDays,
-          startDate,
-          endDate,
-        },
-      }),
-    };
-
-    onSave(newClassData);
-    onClose();
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/50 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl my-8 animate-in fade-in zoom-in-95">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-xs">
+      <div className="relative my-8 w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
               Create New Live Class
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Schedule interactive sessions or setup recurring weekly lectures.
+
+            <p className="mt-0.5 text-xs text-slate-500">
+              Schedule an interactive live session.
             </p>
           </div>
+
           <button
+            type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Class Type Selector Tabs */}
+        {/* Class Type */}
         <div className="mt-4 flex rounded-xl bg-slate-100 p-1">
           <button
             type="button"
-            onClick={() => setClassType('one-time')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition-all ${
+            onClick={() =>
+              setClassType('one-time')
+            }
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold ${
               classType === 'one-time'
                 ? 'bg-white text-blue-600 shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
+                : 'text-slate-600'
             }`}
           >
             <Calendar className="h-4 w-4" />
-            <span>One-time Class</span>
+            One-time Class
           </button>
+
           <button
             type="button"
-            onClick={() => setClassType('recurring')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition-all ${
+            onClick={() =>
+              setClassType('recurring')
+            }
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold ${
               classType === 'recurring'
                 ? 'bg-white text-blue-600 shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
+                : 'text-slate-600'
             }`}
           >
             <Repeat className="h-4 w-4" />
-            <span>Recurring Class</span>
+            Recurring Class
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="mt-4 space-y-4"
+        >
+          {/* Error */}
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              {error}
+            </div>
+          )}
+
           {/* Title */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Class Title <span className="text-red-500">*</span>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Class Title{' '}
+              <span className="text-red-500">
+                *
+              </span>
             </label>
+
             <input
               type="text"
-              required
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Physics - Laws of Motion & Friction Mastery"
-              className="h-9.5 w-full rounded-lg border border-slate-200 px-3 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              onChange={(e) =>
+                setTitle(e.target.value)
+              }
+              placeholder="e.g. Physics - Laws of Motion"
+              className="h-10 w-full rounded-lg border border-slate-200 px-3 text-xs text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
-          {/* Course & Category */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* IDs */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Target Course
+              <label className="mb-1 block text-xs font-bold text-slate-700">
+                Instructor ID{' '}
+                <span className="text-red-500">
+                  *
+                </span>
               </label>
-              <select
-                value={course}
-                onChange={(e) => setCourse(e.target.value)}
-                className="h-9.5 w-full rounded-lg border border-slate-200 px-3 text-xs text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                {COURSES.filter((c) => c !== 'All Courses').map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+
+              <div className="relative">
+                <Users className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+                <input
+                  type="number"
+                  min="1"
+                  value={instructorId}
+                  onChange={(e) =>
+                    setInstructorId(
+                      e.target.value,
+                    )
+                  }
+                  placeholder="e.g. 12"
+                  className="h-10 w-full rounded-lg border border-slate-200 pl-9 pr-3 text-xs text-slate-800 outline-none focus:border-blue-500"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Subject / Category
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="h-9.5 w-full rounded-lg border border-slate-200 px-3 text-xs text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                {CATEGORIES.filter((cat) => cat !== 'All Categories').map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {platform === 'Jitsi' ? (
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-700">
+                  Course ID{' '}
+                  <span className="text-red-500">
+                    *
+                  </span>
+                </label>
+
+                <div className="relative">
+                  <BookOpen className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+                  <input
+                    type="number"
+                    min="1"
+                    value={courseId}
+                    onChange={(e) =>
+                      setCourseId(
+                        e.target.value,
+                      )
+                    }
+                    placeholder="e.g. 151"
+                    className="h-10 w-full rounded-lg border border-slate-200 pl-9 pr-3 text-xs text-slate-800 outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-700">
+                  Free Course ID{' '}
+                  <span className="text-red-500">
+                    *
+                  </span>
+                </label>
+
+                <div className="relative">
+                  <BookOpen className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+                  <input
+                    type="number"
+                    min="1"
+                    value={freeCourseId}
+                    onChange={(e) =>
+                      setFreeCourseId(
+                        e.target.value,
+                      )
+                    }
+                    placeholder="e.g. 5"
+                    className="h-10 w-full rounded-lg border border-slate-200 pl-9 pr-3 text-xs text-slate-800 outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Instructor & Platform */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Assigned Instructor
-              </label>
-              <select
-                value={instructorId}
-                onChange={(e) => setInstructorId(e.target.value)}
-                className="h-9.5 w-full rounded-lg border border-slate-200 px-3 text-xs text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                {INSTRUCTORS.map((ins) => (
-                  <option key={ins.id} value={ins.id}>
-                    {ins.name} ({ins.specialty?.split(' ')[0]})
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Platform */}
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Streaming Platform
+            </label>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Streaming Platform
-              </label>
+            <div className="relative">
+              <Video className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
               <select
                 value={platform}
-                onChange={(e) => setPlatform(e.target.value as PlatformType)}
-                className="h-9.5 w-full rounded-lg border border-slate-200 px-3 text-xs text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onChange={(e) =>
+                  setPlatform(
+                    e.target.value as PlatformType,
+                  )
+                }
+                className="h-10 w-full appearance-none rounded-lg border border-slate-200 pl-9 pr-3 text-xs text-slate-700 outline-none focus:border-blue-500"
               >
-                <option value="YouTube">YouTube Live</option>
-                <option value="Jitsi">Jitsi Meet (Fukey Live)</option>
+                <option value="Jitsi">
+                  Jitsi Meet
+                </option>
+
+                <option value="YouTube">
+                  YouTube Live
+                </option>
               </select>
             </div>
           </div>
 
-          {/* Meeting URL */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Meeting URL or Broadcast Stream Link
-            </label>
-            <div className="relative">
-              <input
-                type="url"
-                value={meetingUrl}
-                onChange={(e) => setMeetingUrl(e.target.value)}
-                placeholder="https://meet.jit.si/... or https://youtube.com/live/..."
-                className="h-9.5 w-full rounded-lg border border-slate-200 pl-8 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              <Link className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-            </div>
-          </div>
+          {/* YouTube Video ID */}
+          {platform === 'YouTube' && (
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700">
+                YouTube Video ID{' '}
+                <span className="text-red-500">
+                  *
+                </span>
+              </label>
 
-          {/* Date, Time & Duration for One-Time vs Recurring */}
+              <div className="relative">
+                <Link className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+                <input
+                  type="text"
+                  value={youtubeVideoId}
+                  onChange={(e) =>
+                    setYoutubeVideoId(
+                      e.target.value,
+                    )
+                  }
+                  placeholder="e.g. dQw4w9WgXcQ"
+                  className="h-10 w-full rounded-lg border border-slate-200 pl-9 pr-3 text-xs text-slate-800 outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <p className="mt-1 text-[10px] text-slate-500">
+                Enter only the YouTube video ID, not the complete URL.
+              </p>
+            </div>
+          )}
+
+          {/* Date / Time / Duration */}
           {classType === 'one-time' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="mb-1 block text-xs font-bold text-slate-700">
                   Class Date
                 </label>
+
                 <input
                   type="date"
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="h-9.5 w-full rounded-lg border border-slate-200 px-3 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  onChange={(e) =>
+                    setDate(e.target.value)
+                  }
+                  className="h-10 w-full rounded-lg border border-slate-200 px-3 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="mb-1 block text-xs font-bold text-slate-700">
                   Start Time
                 </label>
+
                 <input
                   type="time"
                   value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="h-9.5 w-full rounded-lg border border-slate-200 px-3 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  onChange={(e) =>
+                    setTime(e.target.value)
+                  }
+                  className="h-10 w-full rounded-lg border border-slate-200 px-3 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="mb-1 block text-xs font-bold text-slate-700">
                   Duration (mins)
                 </label>
+
                 <input
                   type="number"
-                  min="15"
-                  max="300"
+                  min="10"
                   value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  className="h-9.5 w-full rounded-lg border border-slate-200 px-3 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  onChange={(e) =>
+                    setDuration(e.target.value)
+                  }
+                  className="h-10 w-full rounded-lg border border-slate-200 px-3 text-xs"
                 />
               </div>
             </div>
           ) : (
-            /* Recurring Schedule Configuration */
-            <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-4 space-y-3.5">
+            <div className="space-y-3 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
               <div className="flex items-center gap-2 text-xs font-bold text-blue-900">
                 <Repeat className="h-4 w-4 text-blue-600" />
-                <span>Recurring Schedule Setup</span>
+                Recurring Schedule
               </div>
 
-              {/* Days of Week selector */}
+              {/* Days */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1.5">
-                  Select Days of Week
+                <label className="mb-1.5 block text-[11px] font-bold text-slate-600">
+                  Select Days
                 </label>
+
                 <div className="flex flex-wrap gap-1.5">
-                  {weekDays.map((d) => {
-                    const isSelected = selectedDays.includes(d);
+                  {weekDays.map((day) => {
+                    const selected =
+                      selectedDays.includes(day);
+
                     return (
                       <button
-                        key={d}
+                        key={day}
                         type="button"
-                        onClick={() => toggleDay(d)}
-                        className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
-                          isSelected
-                            ? 'bg-blue-600 text-white shadow-2xs'
-                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                        onClick={() =>
+                          toggleDay(day)
+                        }
+                        className={`rounded-lg px-3 py-1.5 text-xs font-bold ${
+                          selected
+                            ? 'bg-blue-600 text-white'
+                            : 'border border-slate-200 bg-white text-slate-700'
                         }`}
                       >
-                        {d}
+                        {day}
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Start Date, End Date, Time & Duration */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                  <label className="mb-1 block text-[11px] font-bold text-slate-600">
                     Start Date
                   </label>
+
                   <input
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-800"
+                    onChange={(e) =>
+                      setStartDate(
+                        e.target.value,
+                      )
+                    }
+                    className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                  <label className="mb-1 block text-[11px] font-bold text-slate-600">
                     End Date
                   </label>
+
                   <input
                     type="date"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-800"
+                    onChange={(e) =>
+                      setEndDate(
+                        e.target.value,
+                      )
+                    }
+                    className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                  <label className="mb-1 block text-[11px] font-bold text-slate-600">
                     Class Time
                   </label>
+
                   <input
                     type="time"
                     value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-800"
+                    onChange={(e) =>
+                      setTime(e.target.value)
+                    }
+                    className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                    Duration (mins)
+                  <label className="mb-1 block text-[11px] font-bold text-slate-600">
+                    Duration
                   </label>
+
                   <input
                     type="number"
-                    min="15"
-                    max="300"
+                    min="10"
                     value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                    className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-800"
+                    onChange={(e) =>
+                      setDuration(e.target.value)
+                    }
+                    className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] font-bold text-slate-600">
+                  Frequency
+                </label>
+
+                <select
+                  value={recurrenceFreq}
+                  onChange={(e) =>
+                    setRecurrenceFreq(
+                      e.target.value as
+                        | 'daily'
+                        | 'weekly'
+                        | 'weekdays'
+                        | 'custom',
+                    )
+                  }
+                  className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs"
+                >
+                  <option value="daily">
+                    Daily
+                  </option>
+                  <option value="weekly">
+                    Weekly
+                  </option>
+                  <option value="weekdays">
+                    Weekdays
+                  </option>
+                  <option value="custom">
+                    Custom
+                  </option>
+                </select>
               </div>
             </div>
           )}
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Class Description & Learning Objectives
+            <label className="mb-1 block text-xs font-bold text-slate-700">
+              Class Description
             </label>
+
             <textarea
-              rows={2}
+              rows={3}
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Outline what students will master during this session..."
-              className="w-full rounded-lg border border-slate-200 p-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              onChange={(e) =>
+                setDescription(
+                  e.target.value,
+                )
+              }
+              placeholder="Describe what students will learn..."
+              className="w-full rounded-lg border border-slate-200 p-2.5 text-xs outline-none focus:border-blue-500"
             />
           </div>
 
-          {/* Student Notification Checkbox */}
-          <div className="flex items-center gap-2 pt-1">
-            <input
-              type="checkbox"
-              id="notify"
-              defaultChecked
-              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="notify" className="text-xs text-slate-600 cursor-pointer">
-              Automatically notify all enrolled students via SMS and email alerts.
-            </label>
+          {/* Info */}
+          <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-[11px] text-blue-700">
+            {platform === 'Jitsi'
+              ? 'Jitsi meeting URL will be generated automatically by the backend.'
+              : 'For YouTube, provide the actual YouTube Video ID.'}
           </div>
 
-          {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-2.5 border-t border-slate-100 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+              disabled={saving}
+              className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
             >
               Cancel
             </button>
+
             <button
               type="submit"
-              className="rounded-lg bg-blue-600 px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition-colors"
+              disabled={saving}
+              className="rounded-lg bg-blue-600 px-5 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {classType === 'recurring' ? 'Schedule Recurring Series' : 'Publish Live Class'}
+              {saving
+                ? 'Creating...'
+                : classType === 'recurring'
+                  ? 'Schedule Recurring Series'
+                  : 'Publish Live Class'}
             </button>
           </div>
         </form>

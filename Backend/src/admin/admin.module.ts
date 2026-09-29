@@ -60,6 +60,10 @@ import { FreeCourseController } from './free-course/controller/free-course.contr
 import { FreeCourseService } from './free-course/services/free-course.service';
 import { CourseSubCategoryController } from './course/controller/course-sub-category.controller';
 import { CourseSubCategoryService } from './course/services/course-sub-category.service';
+import { LiveClassController } from './live-class/controller/live-class.controller';
+import { LiveClassService } from './live-class/services/live-class.service';
+import { JitsiService } from './live-class/services/jitsi.service';
+import { RecurringLiveClassService } from './live-class/services/recurring-live-class.service';
 
 @Module({
   imports: [
@@ -95,7 +99,8 @@ import { CourseSubCategoryService } from './course/services/course-sub-category.
     FreeCourseCategoryController,
     FreeCourseContentController,
     FreeCourseController,
-    CourseSubCategoryController
+    CourseSubCategoryController,
+    LiveClassController
 
   ],
 
@@ -126,7 +131,10 @@ import { CourseSubCategoryService } from './course/services/course-sub-category.
     FreeCourseCategoryService,
     FreeCourseContentService,
     FreeCourseService,
-    CourseSubCategoryService
+    CourseSubCategoryService,
+    LiveClassService,
+    JitsiService,
+    RecurringLiveClassService
     
 
   ],

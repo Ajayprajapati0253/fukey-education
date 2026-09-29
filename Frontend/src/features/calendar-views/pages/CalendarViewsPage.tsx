@@ -60,39 +60,148 @@ export const CalendarViewsPage: React.FC = () => {
     showToast,
   } = useCalendarLiveClasses();
 
-  // Mini Calendar current month state (defaults to current month and year)
-  const [miniCalMonth, setMiniCalMonth] = useState(() => new Date().getMonth());
-  const [miniCalYear, setMiniCalYear] = useState(() => new Date().getFullYear());
+  // Mini Calendar current month state
+  const [miniCalMonth, setMiniCalMonth] = useState(
+    () => new Date().getMonth(),
+  );
+
+  const [miniCalYear, setMiniCalYear] = useState(
+    () => new Date().getFullYear(),
+  );
 
   const miniCalDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
+  // Format Date as YYYY-MM-DD
+  const formatDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  };
+
+  // Get first and last date of current mini-calendar month
+  const getMonthDateRange = (year: number, month: number) => {
+    const start = new Date(year, month, 1);
+    const end = new Date(year, month + 1, 0);
+
+    return {
+      start: formatDate(start),
+      end: formatDate(end),
+    };
+  };
+
   // Dynamically compute calendar days for any month/year
   const miniCalGrid = useMemo(() => {
-    const firstDayOfMonth = new Date(miniCalYear, miniCalMonth, 1);
-    const lastDayOfMonth = new Date(miniCalYear, miniCalMonth + 1, 0);
+    const firstDayOfMonth = new Date(
+      miniCalYear,
+      miniCalMonth,
+      1,
+    );
+
+    const lastDayOfMonth = new Date(
+      miniCalYear,
+      miniCalMonth + 1,
+      0,
+    );
+
     const daysInMonth = lastDayOfMonth.getDate();
 
     // Day of week: 0=Sun, 1=Mon... Monday is idx 0
     const startDay = firstDayOfMonth.getDay();
-    const startOffset = startDay === 0 ? 6 : startDay - 1;
+    const startOffset =
+      startDay === 0 ? 6 : startDay - 1;
 
-    const prevMonthLastDay = new Date(miniCalYear, miniCalMonth, 0).getDate();
-    const cells: { num: number; inMonth: boolean; dateStr: string }[] = [];
+    const prevMonthLastDay = new Date(
+      miniCalYear,
+      miniCalMonth,
+      0,
+    ).getDate();
+
+    const cells: {
+      num: number;
+      inMonth: boolean;
+      dateStr: string;
+    }[] = [];
 
     for (let i = startOffset - 1; i >= 0; i--) {
-      cells.push({ num: prevMonthLastDay - i, inMonth: false, dateStr: '' });
+      cells.push({
+        num: prevMonthLastDay - i,
+        inMonth: false,
+        dateStr: '',
+      });
     }
+
     for (let d = 1; d <= daysInMonth; d++) {
       const mStr = String(miniCalMonth + 1).padStart(2, '0');
       const dStr = String(d).padStart(2, '0');
-      cells.push({ num: d, inMonth: true, dateStr: `${miniCalYear}-${mStr}-${dStr}` });
+
+      cells.push({
+        num: d,
+        inMonth: true,
+        dateStr: `${miniCalYear}-${mStr}-${dStr}`,
+      });
     }
+
     const remaining = 42 - cells.length;
+
     for (let n = 1; n <= remaining; n++) {
-      cells.push({ num: n, inMonth: false, dateStr: '' });
+      cells.push({
+        num: n,
+        inMonth: false,
+        dateStr: '',
+      });
     }
+
     return cells;
   }, [miniCalYear, miniCalMonth]);
+
+  // Change mini calendar month and keep filters in sync
+  const handleMiniCalendarMonthChange = (
+    year: number,
+    month: number,
+  ) => {
+    setMiniCalYear(year);
+    setMiniCalMonth(month);
+
+    const range = getMonthDateRange(year, month);
+
+    setFilters({
+      ...filters,
+      dateRange: range,
+    });
+
+    setSelectedDate(range.start);
+  };
+
+  // Reset filters to the current month
+  const handleResetFilters = () => {
+    const now = new Date();
+
+    const range = getMonthDateRange(
+      now.getFullYear(),
+      now.getMonth(),
+    );
+
+    setFilters({
+      searchQuery: '',
+      teacherId: 'all',
+      courseId: 'all',
+      status: 'all',
+      dateRange: range,
+    });
+
+    setSelectedDate(todayDateStr);
+
+    setMiniCalMonth(now.getMonth());
+    setMiniCalYear(now.getFullYear());
+
+    showToast(
+      'Filters Cleared',
+      'Displaying all scheduled courses and instructors',
+      'info',
+    );
+  };
 
   return (
     <div className="space-y-5">
@@ -105,17 +214,26 @@ export const CalendarViewsPage: React.FC = () => {
           <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
             <Bell className="w-4 h-4" />
           </div>
+
           <div className="flex-1">
-            <h4 className="text-xs font-bold text-gray-900 dark:text-gray-100">{toastMessage.title}</h4>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{toastMessage.desc}</p>
+            <h4 className="text-xs font-bold text-gray-900 dark:text-gray-100">
+              {toastMessage.title}
+            </h4>
+
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+              {toastMessage.desc}
+            </p>
           </div>
         </div>
       )}
 
-      {/* Header Row: Title & Action Buttons */}
+      {/* Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Calendar Views</h1>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+            Calendar Views
+          </h1>
+
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
             Manage and view all scheduled classes of teachers.
           </p>
@@ -144,21 +262,35 @@ export const CalendarViewsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Real-time Automated Reminders Status Banner */}
+      {/* Reminder Status */}
       <div className="bg-linear-to-r from-blue-900 via-indigo-900 to-blue-950 text-white p-3.5 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-sm border border-blue-800">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-300">
-            <Clock className="w-4 h-4 animate-spin" style={{ animationDuration: '8s' }} />
+            <Clock
+              className="w-4 h-4 animate-spin"
+              style={{ animationDuration: '8s' }}
+            />
           </div>
+
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-xs">Live Clock &amp; Automated Reminders Engine:</span>
+              <span className="font-bold text-xs">
+                Live Clock &amp; Automated Reminders Engine:
+              </span>
+
               <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.2 rounded-full uppercase tracking-wider">
                 Running
               </span>
             </div>
+
             <p className="text-[11px] text-blue-200">
-              Current Actual Time: <span className="font-mono font-bold text-white">{currentTime.toLocaleTimeString()}</span> ({currentTime.toLocaleDateString()}). Automated reminders fire for enrolled students before start time.
+              Current Actual Time:{' '}
+              <span className="font-mono font-bold text-white">
+                {currentTime.toLocaleTimeString()}
+              </span>{' '}
+              ({currentTime.toLocaleDateString()}).
+              Automated reminders fire for enrolled students
+              before start time.
             </p>
           </div>
         </div>
@@ -171,6 +303,7 @@ export const CalendarViewsPage: React.FC = () => {
           >
             Restore 24 Aug Classes
           </button>
+
           <button
             type="button"
             onClick={() => {
@@ -186,33 +319,31 @@ export const CalendarViewsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* TWO-COLUMN GRID: MAIN TIMETABLE + RIGHT SIDEBAR (MINI CALENDAR & SUMMARY) */}
+      {/* TWO-COLUMN GRID */}
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-5 items-start">
-        {/* Left Area: Filters & Timetable */}
+        {/* Left Area */}
         <div className="space-y-4">
-          {/* Filters Component */}
+          {/* Filters */}
           <CalendarLiveClassesFilters
             filters={filters}
             onFilterChange={(newFilters) => {
               setFilters(newFilters);
-              if (newFilters.dateRange?.start && newFilters.dateRange.start !== filters.dateRange?.start) {
-                setSelectedDate(newFilters.dateRange.start);
+
+              if (
+                newFilters.dateRange?.start &&
+                newFilters.dateRange.start !==
+                  filters.dateRange?.start
+              ) {
+                setSelectedDate(
+                  newFilters.dateRange.start,
+                );
               }
             }}
-            onResetFilters={() => {
-              setFilters({
-                searchQuery: '',
-                teacherId: 'all',
-                courseId: 'all',
-                status: 'all',
-                dateRange: { start: '2026-08-01', end: '2026-08-31' },
-              });
-              showToast('Filters Cleared', 'Displaying all scheduled courses and instructors', 'info');
-            }}
+            onResetFilters={handleResetFilters}
             onSyncDates={handleGoToToday}
           />
 
-          {/* Main Timetable Component */}
+          {/* Main Timetable */}
           <CalendarLiveClassesTable
             classes={filteredClasses}
             viewMode={viewMode}
@@ -234,15 +365,17 @@ export const CalendarViewsPage: React.FC = () => {
           />
         </div>
 
-        {/* Right Area: Mini Calendar, Status Legend & Weekly Summary */}
+        {/* Right Area */}
         <div className="space-y-4">
-          {/* Mini Calendar Widget */}
+          {/* Mini Calendar */}
           <div
             id="mini-calendar-widget"
             className="bg-white dark:bg-[#1E293B] rounded-xl border border-gray-200/90 dark:border-[#334155] p-4 shadow-xs"
           >
             <div className="flex items-center justify-between mb-3 text-xs">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">Mini Calendar</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                Mini Calendar
+              </h3>
             </div>
 
             <div className="flex items-center justify-between text-xs font-bold text-gray-800 dark:text-gray-200 mb-2 px-1">
@@ -250,10 +383,15 @@ export const CalendarViewsPage: React.FC = () => {
                 type="button"
                 onClick={() => {
                   if (miniCalMonth === 0) {
-                    setMiniCalMonth(11);
-                    setMiniCalYear(miniCalYear - 1);
+                    handleMiniCalendarMonthChange(
+                      miniCalYear - 1,
+                      11,
+                    );
                   } else {
-                    setMiniCalMonth(miniCalMonth - 1);
+                    handleMiniCalendarMonthChange(
+                      miniCalYear,
+                      miniCalMonth - 1,
+                    );
                   }
                 }}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-[#334155] rounded text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
@@ -261,16 +399,30 @@ export const CalendarViewsPage: React.FC = () => {
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
 
-              <span>{new Date(miniCalYear, miniCalMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+              <span>
+                {new Date(
+                  miniCalYear,
+                  miniCalMonth,
+                  1,
+                ).toLocaleDateString('en-US', {
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </span>
 
               <button
                 type="button"
                 onClick={() => {
                   if (miniCalMonth === 11) {
-                    setMiniCalMonth(0);
-                    setMiniCalYear(miniCalYear + 1);
+                    handleMiniCalendarMonthChange(
+                      miniCalYear + 1,
+                      0,
+                    );
                   } else {
-                    setMiniCalMonth(miniCalMonth + 1);
+                    handleMiniCalendarMonthChange(
+                      miniCalYear,
+                      miniCalMonth + 1,
+                    );
                   }
                 }}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-[#334155] rounded text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
@@ -289,15 +441,37 @@ export const CalendarViewsPage: React.FC = () => {
             {/* Date Grid */}
             <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium">
               {miniCalGrid.map((item, idx) => {
-                const isSelected = item.inMonth && item.dateStr === selectedDate;
-                const isToday = item.inMonth && item.dateStr === todayDateStr;
+                const isSelected =
+                  item.inMonth &&
+                  item.dateStr === selectedDate;
+
+                const isToday =
+                  item.inMonth &&
+                  item.dateStr === todayDateStr;
+
                 return (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => {
-                      if (item.inMonth && item.dateStr) {
+                      if (
+                        item.inMonth &&
+                        item.dateStr
+                      ) {
                         setSelectedDate(item.dateStr);
+
+                        const clickedDate =
+                          new Date(
+                            `${item.dateStr}T00:00:00`,
+                          );
+
+                        setMiniCalYear(
+                          clickedDate.getFullYear(),
+                        );
+
+                        setMiniCalMonth(
+                          clickedDate.getMonth(),
+                        );
                       }
                     }}
                     className={`w-7 h-7 mx-auto rounded-full flex items-center justify-center transition text-[11px] cursor-pointer ${
@@ -317,53 +491,76 @@ export const CalendarViewsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Status Legend Widget */}
+          {/* Status Legend */}
           <div
             id="status-legend-widget"
             className="bg-white dark:bg-[#1E293B] rounded-xl border border-gray-200/90 dark:border-[#334155] p-4 shadow-xs space-y-3"
           >
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-xs">Status Legend</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-xs">
+              Status Legend
+            </h3>
 
             <div className="space-y-2.5 text-xs">
               <div className="flex items-start gap-2.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1 shrink-0 animate-pulse" />
                 <div>
-                  <span className="font-bold text-gray-800 dark:text-gray-200 block text-[11px]">Live</span>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500">Class is currently in progress</span>
+                  <span className="font-bold text-gray-800 dark:text-gray-200 block text-[11px]">
+                    Live
+                  </span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                    Class is currently in progress
+                  </span>
                 </div>
               </div>
 
               <div className="flex items-start gap-2.5">
                 <span className="w-2 h-2 rounded-full bg-blue-600 mt-1 shrink-0" />
                 <div>
-                  <span className="font-bold text-gray-800 dark:text-gray-200 block text-[11px]">Scheduled</span>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500">Class is scheduled</span>
+                  <span className="font-bold text-gray-800 dark:text-gray-200 block text-[11px]">
+                    Scheduled
+                  </span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                    Class is scheduled
+                  </span>
                 </div>
               </div>
 
               <div className="flex items-start gap-2.5">
                 <span className="w-2 h-2 rounded-full bg-amber-500 mt-1 shrink-0" />
                 <div>
-                  <span className="font-bold text-gray-800 dark:text-gray-200 block text-[11px]">Completed</span>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500">Class has been completed</span>
+                  <span className="font-bold text-gray-800 dark:text-gray-200 block text-[11px]">
+                    Completed
+                  </span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                    Class has been completed
+                  </span>
                 </div>
               </div>
 
               <div className="flex items-start gap-2.5">
                 <span className="w-2 h-2 rounded-full bg-rose-500 mt-1 shrink-0" />
                 <div>
-                  <span className="font-bold text-gray-800 dark:text-gray-200 block text-[11px]">Cancelled</span>
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500">Class has been cancelled</span>
+                  <span className="font-bold text-gray-800 dark:text-gray-200 block text-[11px]">
+                    Cancelled
+                  </span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                    Class has been cancelled
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Weekly Summary KPIs */}
+          {/* Weekly Summary */}
           <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-gray-200/90 dark:border-[#334155] p-4 shadow-xs">
             <CalendarLiveClassesKPI
               summary={weeklyKPIs}
-              onFilterByStatus={(st) => setFilters({ ...filters, status: st })}
+              onFilterByStatus={(st) =>
+                setFilters({
+                  ...filters,
+                  status: st,
+                })
+              }
             />
           </div>
         </div>

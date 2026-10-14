@@ -1,6 +1,10 @@
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { join } from 'path';
+import { existsSync, mkdirSync } from 'fs';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,6 +27,22 @@ async function bootstrap() {
   (BigInt.prototype as any).toJSON = function () {
     return this.toString();
   };
+
+  // Serve uploaded study material PDFs
+  const uploadDirectory = join(
+    process.cwd(),
+    'public',
+    'uploads',
+  );
+
+  if (!existsSync(uploadDirectory)) {
+    mkdirSync(uploadDirectory, { recursive: true });
+  }
+
+  app.use(
+    '/uploads',
+    express.static(uploadDirectory),
+  );
 
   await app.listen(process.env.PORT ?? 3000);
 }

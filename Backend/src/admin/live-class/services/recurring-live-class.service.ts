@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -504,4 +504,58 @@ export class RecurringLiveClassService {
       },
     );
   }
+
+  async getGeneratedRecurringLiveClasses() {
+  const generated =
+    await this.prisma.course_live_classes.findMany({
+      where: {
+        is_generated_instance: true,
+      },
+      orderBy: {
+        start_time: 'desc',
+      },
+    });
+
+  return {
+    status: 'success',
+    data: generated.map((item) => ({
+      ...item,
+      id: Number(item.id),
+      lesson_id: Number(item.lesson_id),
+      parent_live_class_id:
+        item.parent_live_class_id
+          ? Number(item.parent_live_class_id)
+          : null,
+    })),
+  };
+}
+
+async getGeneratedRecurringLiveClass(id: number) {
+  const generated =
+    await this.prisma.course_live_classes.findFirst({
+      where: {
+        id: BigInt(id),
+        is_generated_instance: true,
+      },
+    });
+
+  if (!generated) {
+    throw new NotFoundException(
+      'Generated recurring live class not found',
+    );
+  }
+
+  return {
+    status: 'success',
+    data: {
+      ...generated,
+      id: Number(generated.id),
+      lesson_id: Number(generated.lesson_id),
+      parent_live_class_id:
+        generated.parent_live_class_id
+          ? Number(generated.parent_live_class_id)
+          : null,
+    },
+  };
+}
 }

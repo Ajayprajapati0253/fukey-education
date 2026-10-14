@@ -32,6 +32,14 @@ export class GeneralSettingService {
       'cursor_dot_status',
       'preloader_status',
       'live_mail_send',
+       // Site Theme Colors
+      'primary_color',
+      'secondary_color',
+      'common_color_one',
+      'common_color_two',
+      'common_color_three',
+      'common_color_four',
+      'common_color_five',
     ];
 
     const settings = await this.prisma.settings.findMany({

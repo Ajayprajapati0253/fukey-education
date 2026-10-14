@@ -111,6 +111,7 @@ model blog_categories {
   created_at                 DateTime?                    @db.Timestamp(0)
   updated_at                 DateTime?                    @db.Timestamp(0)
   blog_category_translations blog_category_translations[]
+  blogs blogs[]
 }
 
 model blog_category_translations {
@@ -137,6 +138,7 @@ model blog_comments {
   status     Boolean   @default(false)
   created_at DateTime? @db.Timestamp(0)
   updated_at DateTime? @db.Timestamp(0)
+  blogs blogs @relation(fields: [blog_id], references: [id])
 }
 
 model blog_translations {
@@ -149,6 +151,7 @@ model blog_translations {
   seo_description String?   @db.Text
   created_at      DateTime? @db.Timestamp(0)
   updated_at      DateTime? @db.Timestamp(0)
+  blogs blogs @relation(fields: [blog_id], references: [id])
 }
 
 model blogs {
@@ -164,6 +167,9 @@ model blogs {
   status           Boolean   @default(false)
   created_at       DateTime? @db.Timestamp(0)
   updated_at       DateTime? @db.Timestamp(0)
+  blog_category        blog_categories       @relation(fields: [blog_category_id], references: [id])
+  blog_translations    blog_translations[]
+  blog_comments        blog_comments[]
 }
 
 model brands {
@@ -462,29 +468,32 @@ model course_levels {
 }
 
 model course_live_classes {
-  id                      BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
-  lesson_id               BigInt                   @db.UnsignedBigInt
-  start_time              String?                  @db.VarChar(255)
-  start_notification_sent Boolean                  @default(false)
-  type                    course_live_classes_type @default(zoom)
-  is_recurring            Boolean                  @default(false)
-  recurring_days          Json?
-  recurring_type          String?                  @db.VarChar(255)
-  recurring_interval      Int                      @default(1)
-  recurring_until         DateTime?                @db.Timestamp(0)
-  parent_live_class_id    BigInt?                  @db.UnsignedBigInt
-  is_generated_instance   Boolean                  @default(false)
-  meeting_id              String?                  @db.VarChar(255)
-  password                String?                  @db.VarChar(255)
-  join_url                String?                  @db.VarChar(255)
-  created_at              DateTime?                @db.Timestamp(0)
-  updated_at              DateTime?                @db.Timestamp(0)
-  course_chapter_lessons  course_chapter_lessons   @relation(fields: [lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "course_live_classes_lesson_id_foreign")
+  id                          BigInt                       @id @default(autoincrement()) @db.UnsignedBigInt
+  lesson_id                   BigInt?                      @db.UnsignedBigInt
+  free_lesson_id              BigInt?                      @db.UnsignedBigInt
+  start_time                  String?                      @db.VarChar(255)
+  start_notification_sent     Boolean                      @default(false)
+  type                        course_live_classes_type     @default(zoom)
+  is_recurring                Boolean                      @default(false)
+  recurring_days              Json?
+  recurring_type              String?                      @db.VarChar(255)
+  recurring_interval          Int                          @default(1)
+  recurring_until             DateTime?                    @db.Timestamp(0)
+  parent_live_class_id        BigInt?                      @db.UnsignedBigInt
+  is_generated_instance       Boolean                      @default(false)
+  meeting_id                  String?                      @db.VarChar(255)
+  password                    String?                      @db.VarChar(255)
+  join_url                    String?                      @db.VarChar(255)
+  created_at                  DateTime?                    @db.Timestamp(0)
+  updated_at                  DateTime?                    @db.Timestamp(0)
+  free_course_chapter_lessons free_course_chapter_lessons? @relation(fields: [free_lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "course_live_classes_free_lesson_id_foreign")
+  course_chapter_lessons      course_chapter_lessons?      @relation(fields: [lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "course_live_classes_lesson_id_foreign")
 
   @@index([is_generated_instance], map: "course_live_classes_is_generated_instance_index")
   @@index([is_recurring], map: "course_live_classes_is_recurring_index")
   @@index([lesson_id], map: "course_live_classes_lesson_id_foreign")
   @@index([parent_live_class_id], map: "course_live_classes_parent_live_class_id_index")
+  @@index([free_lesson_id], map: "course_live_classes_free_lesson_id_foreign")
 }
 
 model course_partner_instructors {
@@ -517,6 +526,8 @@ model course_reviews {
   status     Boolean   @default(false)
   created_at DateTime? @db.Timestamp(0)
   updated_at DateTime? @db.Timestamp(0)
+
+  course courses @relation(fields: [course_id], references: [id])
 }
 
 model course_selected_filter_options {
@@ -579,8 +590,10 @@ model courses {
   ebooks               ebooks[]
   favorite_course_user favorite_course_user[]
   live_classes         live_classes[]
-  enrollments enrollments[]
-  instructor users @relation(fields: [instructor_id], references: [id])
+  instructor           users                      @relation("CourseInstructor", fields: [instructor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  enrollments          enrollments[]
+  order_items          order_items[]
+  course_reviews       course_reviews[]
 }
 
 model crypto_p_g {
@@ -722,13 +735,12 @@ model enrollments {
   has_access Boolean   @default(false)
   created_at DateTime? @db.Timestamp(0)
   updated_at DateTime? @db.Timestamp(0)
-
   orders     orders    @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "enrollments_order_id_foreign")
-  course     courses   @relation(fields: [course_id], references: [id])
+  courses    courses   @relation(fields: [course_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([user_id, course_id], map: "enrollments_user_id_course_id_unique")
   @@index([order_id], map: "enrollments_order_id_foreign")
-  @@index([course_id])
 }
 
 model failed_jobs {
@@ -749,6 +761,8 @@ model faq_translations {
   answer     String?   @db.Text
   created_at DateTime? @db.Timestamp(0)
   updated_at DateTime? @db.Timestamp(0)
+    faqs       faqs      @relation(fields: [faq_id], references: [id])
+
 }
 
 model faqs {
@@ -756,6 +770,8 @@ model faqs {
   status     Boolean   @default(true)
   created_at DateTime? @db.Timestamp(0)
   updated_at DateTime? @db.Timestamp(0)
+    faq_translations faq_translations[]
+
 }
 
 model favorite_course_user {
@@ -861,25 +877,26 @@ model free_course_chapter_items {
 }
 
 model free_course_chapter_lessons {
-  id              BigInt                                @id @default(autoincrement()) @db.UnsignedBigInt
-  title           String                                @db.VarChar(255)
-  slug            String?                               @db.VarChar(255)
-  description     String?                               @db.Text
-  instructor_id   BigInt                                @db.UnsignedBigInt
-  free_course_id  BigInt                                @db.UnsignedBigInt
-  chapter_id      BigInt                                @db.UnsignedBigInt
-  chapter_item_id BigInt                                @db.UnsignedBigInt
-  file_path       String?                               @db.Text
-  storage         free_course_chapter_lessons_storage   @default(upload)
-  volume          String?                               @db.VarChar(255)
-  duration        String?                               @db.VarChar(255)
-  file_type       free_course_chapter_lessons_file_type @default(video)
-  downloadable    Boolean                               @default(true)
-  order           Int?
-  is_free         Boolean?                              @default(false)
-  status          free_course_chapter_lessons_status    @default(active)
-  created_at      DateTime?                             @db.Timestamp(0)
-  updated_at      DateTime?                             @db.Timestamp(0)
+  id                  BigInt                                @id @default(autoincrement()) @db.UnsignedBigInt
+  title               String                                @db.VarChar(255)
+  slug                String?                               @db.VarChar(255)
+  description         String?                               @db.Text
+  instructor_id       BigInt                                @db.UnsignedBigInt
+  free_course_id      BigInt                                @db.UnsignedBigInt
+  chapter_id          BigInt                                @db.UnsignedBigInt
+  chapter_item_id     BigInt                                @db.UnsignedBigInt
+  file_path           String?                               @db.Text
+  storage             free_course_chapter_lessons_storage   @default(upload)
+  volume              String?                               @db.VarChar(255)
+  duration            String?                               @db.VarChar(255)
+  file_type           free_course_chapter_lessons_file_type @default(video)
+  downloadable        Boolean                               @default(true)
+  order               Int?
+  is_free             Boolean?                              @default(false)
+  status              free_course_chapter_lessons_status    @default(active)
+  created_at          DateTime?                             @db.Timestamp(0)
+  updated_at          DateTime?                             @db.Timestamp(0)
+  course_live_classes course_live_classes[]
 }
 
 model free_course_chapters {
@@ -995,6 +1012,7 @@ model free_courses {
   created_at           DateTime?                       @db.Timestamp(0)
   updated_at           DateTime?                       @db.Timestamp(0)
   deleted_at           DateTime?                       @db.Timestamp(0)
+  live_classes         live_classes[]
 }
 
 model homes {
@@ -1128,8 +1146,8 @@ model live_classes {
   meeting_id              String                @unique(map: "live_classes_meeting_id_unique") @db.VarChar(255)
   meeting_url             String?               @db.VarChar(255)
   meeting_password        String?               @db.VarChar(255)
-  moderator_token         String?               @db.VarChar(255)
-  moderator_url           String?               @db.VarChar(255)
+  moderator_token         String?               @db.Text
+  moderator_url           String?               @db.Text
   thumbnail               String?               @db.VarChar(255)
   description             String?               @db.Text
   start_time              DateTime              @db.DateTime(0)
@@ -1145,17 +1163,17 @@ model live_classes {
   youtube_broadcast_id    String?               @db.VarChar(255)
   youtube_stream_id       String?               @db.VarChar(255)
   youtube_stream_key      String?               @db.Text
-  youtube_rtmp_url         String?               @db.Text
+  youtube_rtmp_url        String?               @db.Text
   created_at              DateTime?             @db.Timestamp(0)
   updated_at              DateTime?             @db.Timestamp(0)
   start_notification_sent Boolean               @default(false)
-
   courses                 courses?              @relation(fields: [course_id], references: [id], onUpdate: NoAction, map: "live_classes_course_id_foreign")
+  free_courses            free_courses?         @relation(fields: [free_course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "live_classes_free_course_id_foreign")
   users                   users                 @relation(fields: [instructor_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "live_classes_instructor_id_foreign")
 
   @@index([course_id], map: "live_classes_course_id_foreign")
   @@index([instructor_id], map: "live_classes_instructor_id_foreign")
-  @@index([free_course_id], map: "live_classes_free_course_id_index")
+  @@index([free_course_id], map: "live_classes_free_course_id_foreign")
 }
 
 model marketing_settings {
@@ -1352,8 +1370,11 @@ model notes {
   class_category_id                                              BigInt            @db.UnsignedBigInt
   subject_category_id                                            BigInt            @db.UnsignedBigInt
   title                                                          String            @db.VarChar(255)
+  type                                                           String            @default("notes") @db.VarChar(50)
   language                                                       String            @default("en") @db.VarChar(5)
-  pdf_path                                                       String            @db.VarChar(255)
+  description                                                    String?           @db.Text
+  pdf_path                                                       String?           @db.Text
+  video_url                                                      String?           @db.VarChar(255)
   is_paid                                                        Boolean           @default(false)
   price                                                          Decimal           @default(0.00) @db.Decimal(10, 2)
   status                                                         Boolean           @default(true)
@@ -1361,25 +1382,30 @@ model notes {
   updated_at                                                     DateTime?         @db.Timestamp(0)
   course_categories_notes_class_category_idTocourse_categories   course_categories @relation("notes_class_category_idTocourse_categories", fields: [class_category_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notes_class_category_id_foreign")
   course_categories_notes_subject_category_idTocourse_categories course_categories @relation("notes_subject_category_idTocourse_categories", fields: [subject_category_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notes_subject_category_id_foreign")
+  tests                                                          tests[]
 
   @@index([class_category_id], map: "notes_class_category_id_foreign")
   @@index([subject_category_id], map: "notes_subject_category_id_foreign")
+  @@index([type], map: "notes_type_index")
 }
 
 model order_items {
-  id              BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
-  order_id        BigInt                @db.UnsignedBigInt
-  qty             Int                   @default(1)
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  order_id        BigInt    @db.UnsignedBigInt
+  qty             Int       @default(1)
   price           Float
-  item_type       order_items_item_type @default(course)
-  product_id      BigInt?               @db.UnsignedBigInt
-  course_id       BigInt?               @db.UnsignedBigInt
+  item_type       String    @default("course") @db.VarChar(50)
+  product_id      BigInt?   @db.UnsignedBigInt
+  course_id       BigInt?   @db.UnsignedBigInt
   commission_rate Int?
-  created_at      DateTime?             @db.Timestamp(0)
-  updated_at      DateTime?             @db.Timestamp(0)
-  orders          orders                @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_items_order_id_foreign")
+  created_at      DateTime? @db.Timestamp(0)
+  updated_at      DateTime? @db.Timestamp(0)
+  orders          orders    @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_items_order_id_foreign")
+
+  course courses? @relation(fields: [course_id], references: [id])
 
   @@index([order_id], map: "order_items_order_id_foreign")
+  @@index([course_id])
 }
 
 model orders {
@@ -1407,8 +1433,10 @@ model orders {
   order_details           String?       @db.Text
   created_at              DateTime?     @db.Timestamp(0)
   updated_at              DateTime?     @db.Timestamp(0)
-  enrollments             enrollments[]
-  order_items             order_items[]
+
+  enrollments enrollments[]
+  order_items order_items[]
+  buyer       users?        @relation("OrderBuyer", fields: [buyer_id], references: [id])
 }
 
 model otp_codes {
@@ -1608,6 +1636,7 @@ model sections {
   name                 String                 @db.VarChar(255)
   global_content       Json?
   status               Boolean                @default(true)
+  sort_order           Int                    @default(0) @db.UnsignedInt
   created_at           DateTime?              @db.Timestamp(0)
   updated_at           DateTime?              @db.Timestamp(0)
   section_translations section_translations[]
@@ -1841,9 +1870,12 @@ model users {
   favorite_course_user   favorite_course_user[]
   jitsi_settings         jitsi_settings[]
   live_classes           live_classes[]
+  test_attempts          test_attempts[]
   tv_login_codes         tv_login_codes[]
   zoom_credentials       zoom_credentials[]
-  courses courses[]
+  courses_taught         courses[]                @relation("CourseInstructor")
+  enrollments            enrollments[]
+  orders_bought          orders[]                 @relation("OrderBuyer")
 }
 
 model withdraw_methods {
@@ -1897,6 +1929,154 @@ model zoom_credentials {
   @@index([instructor_id], map: "zoom_credentials_instructor_id_foreign")
 }
 
+model tests {
+  id               BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  note_id          BigInt?          @db.UnsignedBigInt
+  class_id         BigInt           @db.UnsignedBigInt
+  subject_id       BigInt           @db.UnsignedBigInt
+  chapter_id       BigInt?          @db.UnsignedBigInt
+  title            String           @db.VarChar(255)
+  slug             String           @unique(map: "tests_slug_unique") @db.VarChar(255)
+  description      String?          @db.Text
+  test_type        String           @default("mcq") @db.VarChar(50)
+  duration_minutes Int              @default(30) @db.UnsignedInt
+  total_questions  Int              @default(0) @db.UnsignedInt
+  total_marks      Decimal          @default(0.00) @db.Decimal(8, 2)
+  is_paid          Boolean          @default(false)
+  price            Decimal          @default(0.00) @db.Decimal(10, 2)
+  status           Boolean          @default(true)
+  created_at       DateTime?        @db.Timestamp(0)
+  updated_at       DateTime?        @db.Timestamp(0)
+  test_attempts    test_attempts[]
+  test_questions   test_questions[]
+  notes            notes?           @relation(fields: [note_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "tests_note_id_foreign")
+
+  @@index([chapter_id], map: "tests_chapter_id_index")
+  @@index([class_id], map: "tests_class_id_index")
+  @@index([is_paid], map: "tests_is_paid_index")
+  @@index([note_id], map: "tests_note_id_index")
+  @@index([status], map: "tests_status_index")
+  @@index([subject_id], map: "tests_subject_id_index")
+  @@index([test_type], map: "tests_test_type_index")
+}
+
+model questions {
+  id                   BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
+  class_id             BigInt                 @db.UnsignedBigInt
+  subject_id           BigInt                 @db.UnsignedBigInt
+  chapter_id           BigInt?                @db.UnsignedBigInt
+  question             String                 @db.Text
+  question_type        String                 @default("mcq_single") @db.VarChar(50)
+  explanation          String?                @db.Text
+  marks                Decimal                @default(1.00) @db.Decimal(8, 2)
+  negative_marks       Decimal                @default(0.00) @db.Decimal(8, 2)
+  difficulty           String                 @default("medium") @db.VarChar(20)
+  language             String                 @default("en") @db.VarChar(10)
+  status               Boolean                @default(true)
+  created_at           DateTime?              @db.Timestamp(0)
+  updated_at           DateTime?              @db.Timestamp(0)
+  question_options     question_options[]
+  test_attempt_answers test_attempt_answers[]
+  test_questions       test_questions[]
+
+  @@index([chapter_id], map: "questions_chapter_id_index")
+  @@index([class_id], map: "questions_class_id_index")
+  @@index([question_type], map: "questions_question_type_index")
+  @@index([status], map: "questions_status_index")
+  @@index([subject_id], map: "questions_subject_id_index")
+}
+
+model test_questions {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  test_id        BigInt    @db.UnsignedBigInt
+  question_id    BigInt    @db.UnsignedBigInt
+  question_order Int       @default(0) @db.UnsignedInt
+  marks          Decimal?  @db.Decimal(8, 2)
+  negative_marks Decimal?  @db.Decimal(8, 2)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+  questions      questions @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_questions_question_id_foreign")
+  tests          tests     @relation(fields: [test_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_questions_test_id_foreign")
+
+  @@unique([test_id, question_id], map: "test_questions_test_id_question_id_unique")
+  @@index([question_id], map: "test_questions_question_id_index")
+  @@index([test_id, question_order], map: "test_questions_test_id_question_order_index")
+}
+
+model question_options {
+  id                   BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
+  question_id          BigInt                 @db.UnsignedBigInt
+  option_key           String                 @db.VarChar(5)
+  option_text          String                 @db.Text
+  is_correct           Boolean                @default(false)
+  sort_order           Int                    @default(0) @db.UnsignedInt
+  created_at           DateTime?              @db.Timestamp(0)
+  updated_at           DateTime?              @db.Timestamp(0)
+  questions            questions              @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "question_options_question_id_foreign")
+  test_attempt_answers test_attempt_answers[]
+
+  @@index([question_id], map: "question_options_question_id_index")
+  @@index([question_id, sort_order], map: "question_options_question_id_sort_order_index")
+}
+
+model study_material_accesses {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id       BigInt    @db.UnsignedBigInt
+  material_type String    @db.VarChar(50)
+  material_id   BigInt    @db.UnsignedBigInt
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+
+  @@unique([user_id, material_type, material_id], map: "study_material_access_unique")
+  @@index([user_id, material_type], map: "study_material_access_user_type_index")
+}
+
+model test_attempt_answers {
+  id                 BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  attempt_id         BigInt            @db.UnsignedBigInt
+  question_id        BigInt            @db.UnsignedBigInt
+  selected_option_id BigInt?           @db.UnsignedBigInt
+  is_correct         Boolean           @default(false)
+  marks_obtained     Decimal           @default(0.00) @db.Decimal(8, 2)
+  created_at         DateTime?         @db.Timestamp(0)
+  updated_at         DateTime?         @db.Timestamp(0)
+  test_attempts      test_attempts     @relation(fields: [attempt_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_attempt_answers_attempt_id_foreign")
+  questions          questions         @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_attempt_answers_question_id_foreign")
+  question_options   question_options? @relation(fields: [selected_option_id], references: [id], onUpdate: NoAction, map: "test_attempt_answers_selected_option_id_foreign")
+
+  @@unique([attempt_id, question_id], map: "test_attempt_answers_attempt_id_question_id_unique")
+  @@index([attempt_id], map: "test_attempt_answers_attempt_id_index")
+  @@index([question_id], map: "test_attempt_answers_question_id_index")
+  @@index([selected_option_id], map: "test_attempt_answers_selected_option_id_index")
+}
+
+model test_attempts {
+  id                   BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
+  test_id              BigInt                 @db.UnsignedBigInt
+  user_id              BigInt                 @db.UnsignedBigInt
+  started_at           DateTime               @default(now()) @db.Timestamp(0)
+  submitted_at         DateTime?              @db.Timestamp(0)
+  status               String                 @default("in_progress") @db.VarChar(30)
+  total_questions      Int                    @default(0) @db.UnsignedInt
+  attempted_questions  Int                    @default(0) @db.UnsignedInt
+  correct_answers      Int                    @default(0) @db.UnsignedInt
+  wrong_answers        Int                    @default(0) @db.UnsignedInt
+  unanswered           Int                    @default(0) @db.UnsignedInt
+  total_marks          Decimal                @default(0.00) @db.Decimal(8, 2)
+  obtained_marks       Decimal                @default(0.00) @db.Decimal(8, 2)
+  percentage           Decimal                @default(0.00) @db.Decimal(5, 2)
+  time_taken_seconds   Int                    @default(0) @db.UnsignedInt
+  created_at           DateTime?              @db.Timestamp(0)
+  updated_at           DateTime?              @db.Timestamp(0)
+  test_attempt_answers test_attempt_answers[]
+  tests                tests                  @relation(fields: [test_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_attempts_test_id_foreign")
+  users                users                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "test_attempts_user_id_foreign")
+
+  @@index([status], map: "test_attempts_status_index")
+  @@index([test_id], map: "test_attempts_test_id_index")
+  @@index([user_id], map: "test_attempts_user_id_index")
+}
+
 enum ai_chat_messages_role {
   user
   ai
@@ -1936,6 +2116,7 @@ enum tv_login_codes_status {
   pending
   approved
   expired
+  consumed
 }
 
 enum users_role {
@@ -1952,11 +2133,6 @@ enum course_live_classes_type {
 enum courses_course_access_type {
   paid
   free
-}
-
-enum order_items_item_type {
-  course
-  product
 }
 
 enum orders_status {
@@ -2133,4 +2309,3 @@ enum courses_is_approved {
   approved
   rejected
 }
-

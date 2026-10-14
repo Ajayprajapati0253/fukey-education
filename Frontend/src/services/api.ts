@@ -97,7 +97,7 @@ export const put = async <
     config,
   );
 
-  return response.data;
+  return response.data; 
 };
 
 export default api;

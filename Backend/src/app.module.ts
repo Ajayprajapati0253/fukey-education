@@ -12,6 +12,9 @@ import { CartModule } from './user/cart/cart.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { CommonModule } from './common/common.module';
 import { UserModule } from './user/user.module';
+import { InstructorModule } from './instructor/instructor.module';
+import { LocationModule } from './location/location.module';
+import { TvLoginModule } from './tv-login/tv-login.module';
 
 
 @Module({
@@ -27,7 +30,12 @@ import { UserModule } from './user/user.module';
 
     DashboardModule,
     CommonModule,
-    UserModule
+    UserModule,
+    InstructorModule,
+
+    LocationModule,
+
+    TvLoginModule,
   ],
   controllers: [AppController],
   providers: [AppService],

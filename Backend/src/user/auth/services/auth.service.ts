@@ -12,6 +12,7 @@ import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { UpdatePasswordDto } from '../dto/update-password.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FirebaseService } from 'src/firebase/firebase.service';
+import { UpdateProfileDto } from '../dto/update-profile.dto';
 
 
 @Injectable()
@@ -124,15 +125,11 @@ async firebaseLogin(
   try {
     // 1. Verify Firebase ID token
     const verifiedToken =
-      await this.firebaseService.verifyIdToken(
-        firebaseToken,
-      );
+      await this.firebaseService.verifyIdToken(firebaseToken);
 
-    // Firebase UID
     const firebaseUid = verifiedToken.uid;
-
-    // Phone number verified by Firebase
-    const phone = verifiedToken.phone_number;
+    const phone = verifiedToken.phone_number ?? null;
+    const email = verifiedToken.email?.toLowerCase() ?? null;
 
     if (!firebaseUid) {
       throw new UnauthorizedException({
@@ -141,17 +138,86 @@ async firebaseLogin(
       });
     }
 
-    // 2. Find existing user
-    let user = await this.prisma.users.findFirst({
+    let isNewUser = false;
+
+    // 2. Find user by Firebase UID
+    let user = await this.prisma.users.findUnique({
       where: {
         firebase_uid: firebaseUid,
       },
     });
 
-    let isNewUser = false;
+    // 3. Find existing account by verified email
+    if (!user && email && verifiedToken.email_verified) {
+      user = await this.prisma.users.findUnique({
+        where: {
+          email,
+        },
+      });
+    }
 
-    // 3. Create user if this is the first login
-    if (!user) {
+    // 4. Find existing account by Firebase phone
+    if (!user && phone) {
+      user = await this.prisma.users.findUnique({
+        where: {
+          phone,
+        },
+      });
+    }
+
+    // 5. Link existing account or create new student
+    if (user) {
+      // Do not silently replace another Firebase identity
+      if (
+        user.firebase_uid &&
+        user.firebase_uid !== firebaseUid
+      ) {
+        throw new ConflictException({
+          status: 'error',
+          message:
+            'Account is already linked to another Firebase account',
+        });
+      }
+
+      const updateData: {
+        firebase_uid?: string;
+        phone?: string;
+        email?: string;
+        email_verified_at?: Date;
+        fcm_token?: string;
+      } = {};
+
+      if (!user.firebase_uid) {
+        updateData.firebase_uid = firebaseUid;
+      }
+
+      if (phone && !user.phone) {
+        updateData.phone = phone;
+      }
+
+      if (
+        email &&
+        verifiedToken.email_verified &&
+        !user.email
+      ) {
+        updateData.email = email;
+        updateData.email_verified_at = new Date();
+      }
+
+      if (fcmToken) {
+        updateData.fcm_token = fcmToken;
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        user = await this.prisma.users.update({
+          where: {
+            id: user.id,
+          },
+          data: updateData,
+        });
+      }
+    } else {
+      // 6. Create new student
       isNewUser = true;
 
       const randomPassword =
@@ -162,20 +228,31 @@ async firebaseLogin(
         10,
       );
 
-user = await this.prisma.users.create({
-  data: {
-    firebase_uid: firebaseUid,
-    name: '',
-    role: 'student',
-    phone: phone ?? null,
-    status: UserStatus.ACTIVE,
-    is_banned: UserStatus.UNBANNED,
-    password: hashedPassword,
-  },
-});
+      const name = email
+        ? email.split('@')[0]
+        : 'Student';
+
+      user = await this.prisma.users.create({
+        data: {
+          firebase_uid: firebaseUid,
+          name,
+          role: 'student',
+          phone,
+          email,
+          email_verified_at:
+            email && verifiedToken.email_verified
+              ? new Date()
+              : null,
+          status: UserStatus.ACTIVE,
+          is_banned: UserStatus.UNBANNED,
+          password: hashedPassword,
+          profile_completed: false,
+          ...(fcmToken ? { fcm_token: fcmToken } : {}),
+        },
+      });
     }
 
-    // 4. Check account status
+    // 7. Check account status
     if (user.status !== UserStatus.ACTIVE) {
       throw new ForbiddenException({
         status: 'error',
@@ -183,7 +260,7 @@ user = await this.prisma.users.create({
       });
     }
 
-    // 5. Check banned status
+    // 8. Check banned status
     if (user.is_banned === UserStatus.BANNED) {
       throw new ForbiddenException({
         status: 'error',
@@ -191,22 +268,7 @@ user = await this.prisma.users.create({
       });
     }
 
-    // 6. Save FCM token if provided
-    if (fcmToken) {
-      await this.prisma.users.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          fcm_token: fcmToken,
-        },
-      });
-
-      // Keep local object consistent
-      user.fcm_token = fcmToken;
-    }
-
-    // 7. Generate Fukey JWT
+    // 9. Generate Fukey JWT
     const payload = {
       sub: user.id.toString(),
       email: user.email,
@@ -216,17 +278,28 @@ user = await this.prisma.users.create({
     const accessToken =
       this.jwtService.sign(payload);
 
-    // 8. Same basic response structure as Laravel
+    // 10. Return response
     return {
       status: 'success',
       accessToken,
+      token: accessToken,
       user_id: user.id.toString(),
       is_new_user: isNewUser,
+      profile_completed: user.profile_completed,
+      user: {
+        id: user.id.toString(),
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        profile_completed: user.profile_completed,
+      },
     };
   } catch (error) {
     if (
       error instanceof UnauthorizedException ||
-      error instanceof ForbiddenException
+      error instanceof ForbiddenException ||
+      error instanceof ConflictException
     ) {
       throw error;
     }
@@ -525,6 +598,107 @@ async confirmPassword(
   return {
     status: 'success',
     message: 'Account deleted successfully.',
+  };
+}
+
+async updateStudentProfile(
+  userId: string,
+  dto: UpdateProfileDto,
+) {
+  const id = BigInt(userId);
+
+  const user = await this.prisma.users.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!user) {
+    throw new NotFoundException({
+      status: 'error',
+      message: 'User not found',
+    });
+  }
+
+  if (user.role !== 'student') {
+    throw new ForbiddenException({
+      status: 'error',
+      message: 'Only students can update this profile',
+    });
+  }
+
+  const updateData: {
+    name: string;
+    email?: string;
+    age?: number;
+    city?: string;
+    state?: string;
+    board?: string;
+    school?: string;
+    language?: string;
+    student_class?: string;
+    profile_completed: boolean;
+  } = {
+    name: dto.name.trim(),
+    profile_completed: true,
+  };
+
+  if (dto.email !== undefined) {
+    updateData.email = dto.email.toLowerCase().trim();
+  }
+
+  if (dto.age !== undefined) {
+    updateData.age = dto.age;
+  }
+
+  if (dto.city !== undefined) {
+    updateData.city = dto.city;
+  }
+
+  if (dto.state !== undefined) {
+    updateData.state = dto.state;
+  }
+
+  if (dto.board !== undefined) {
+    updateData.board = dto.board;
+  }
+
+  if (dto.school !== undefined) {
+    updateData.school = dto.school;
+  }
+
+  if (dto.language !== undefined) {
+    updateData.language = dto.language;
+  }
+
+  if (dto.student_class !== undefined) {
+    updateData.student_class = dto.student_class;
+  }
+
+  const updatedUser = await this.prisma.users.update({
+    where: {
+      id,
+    },
+    data: updateData,
+  });
+
+  return {
+    status: 'success',
+    message: 'Profile updated successfully',
+    user: {
+      id: updatedUser.id.toString(),
+      name: updatedUser.name,
+      email: updatedUser.email,
+      phone: updatedUser.phone,
+      age: updatedUser.age,
+      city: updatedUser.city,
+      state: updatedUser.state,
+      board: updatedUser.board,
+      school: updatedUser.school,
+      language: updatedUser.language,
+      student_class: updatedUser.student_class,
+      profile_completed: updatedUser.profile_completed,
+    },
   };
 }
 }

@@ -64,6 +64,46 @@ import { LiveClassController } from './live-class/controller/live-class.controll
 import { LiveClassService } from './live-class/services/live-class.service';
 import { JitsiService } from './live-class/services/jitsi.service';
 import { RecurringLiveClassService } from './live-class/services/recurring-live-class.service';
+import { FreeCourseDeleteRequestController } from './free-course/controller/free-course-delete-request.controller';
+import { FreeCourseDeleteRequestService } from './free-course/services/free-course-delete-request.service';
+import { FreeCourseLanguageController } from './free-course/controller/free-course-language.controller';
+import { FreeCourseLanguageService } from './free-course/services/free-course-language.service';
+import { FreeCourseReviewController } from './free-course/controller/free-course-review.controller';
+import { FreeCourseReviewService } from './free-course/services/free-course-review.service';
+import { FreeCourseLevelController } from './free-course/controller/free-course-level.controller';
+import { FreeCourseLevelService } from './free-course/services/free-course-level.service';
+import { FreeCourseSubCategoryController } from './free-course/controller/free-course-sub-category.controller';
+import { FreeCourseSubCategoryService } from './free-course/services/free-course-sub-category.service';
+import { AboutAffordableEducationController } from './frontend/controller/about-affordable-education.controller';
+import { AboutAffordableEducationService } from './frontend/services/about-affordable-education.service';
+import { LanguageService } from './languages/services/language.service';
+import { LanguageController } from './languages/controller/language.controller';
+import { MenubuilderController } from './menu-builder/controller/menu-builder.controller';
+import { MenubuilderService } from './menu-builder/services/menu-builder.service';
+import { StudyMaterialController } from './study-material/controller/study-material.controller';
+import { StudyMaterialService } from './study-material/services/study-material.service';
+import { AdminQuestionService } from './online-test/services/admin-question.service';
+import { AdminQuestionController } from './online-test/controller/admin-question.controller';
+import { NewsletterController } from './news-letter/controller/newsletter.controller';
+import { NewsletterService } from './news-letter/services/newsletter.service';
+import { AdminOrderController } from './order/controller/admin-order.controller';
+import { AdminOrderService } from './order/services/admin-order.service';
+import { PageBuilderController } from './page-builder/controller/page-builder.controller';
+import { PageBuilderService } from './page-builder/services/page-builder.service';
+import { PopupController } from './popup/controller/popup.controller';
+import { PopupService } from './popup/services/popup.service';
+import { SectionSettingController } from './section-setting/controller/section-setting.controller';
+import { SectionSettingService } from './section-setting/services/section-setting.service';
+import { SiteColorController } from './site-color/controller/site-color.controller';
+import { SiteColorService } from './site-color/services/site-color.service';
+import { SocialLinkController } from './social-link/controller/social-link.controller';
+import { SocialLinkService } from './social-link/services/social-link.service';
+import { TestimonialService } from './testimonial/services/testimonial.service';
+import { TestimonialController } from './testimonial/controller/testimonial.controller';
+import { AttachRecordingsCommand } from 'src/commands/live-class/attach-recordings.command';
+import { RecordingWebhookController } from 'src/common/webhooks/recording-webhook.controller';
+import { YtCoursesController } from './yt-courses/controller/yt-courses.controller';
+import { YtCoursesService } from './yt-courses/services/yt-courses.service';
 
 @Module({
   imports: [
@@ -100,7 +140,28 @@ import { RecurringLiveClassService } from './live-class/services/recurring-live-
     FreeCourseContentController,
     FreeCourseController,
     CourseSubCategoryController,
-    LiveClassController
+    LiveClassController,
+    FreeCourseDeleteRequestController,
+    FreeCourseLanguageController,
+    FreeCourseReviewController,
+    FreeCourseLevelController,
+    FreeCourseSubCategoryController,
+    AboutAffordableEducationController,
+    LanguageController,
+    MenubuilderController,
+    NewsletterController,
+    StudyMaterialController,
+    AdminQuestionController,
+    AdminOrderController,
+    PageBuilderController,
+    PopupController,
+    SectionSettingController,
+    SiteColorController,
+    SocialLinkController,
+    TestimonialController,
+    RecordingWebhookController,
+    YtCoursesController,
+
 
   ],
 
@@ -134,9 +195,27 @@ import { RecurringLiveClassService } from './live-class/services/recurring-live-
     CourseSubCategoryService,
     LiveClassService,
     JitsiService,
-    RecurringLiveClassService
-    
-
+    RecurringLiveClassService,
+    FreeCourseDeleteRequestService,
+    FreeCourseLanguageService,
+    FreeCourseReviewService,
+    FreeCourseLevelService,
+    FreeCourseSubCategoryService,
+    AboutAffordableEducationService,
+    LanguageService,
+    MenubuilderService,
+    NewsletterService,
+    StudyMaterialService,
+    AdminQuestionService,
+    AdminOrderService,
+    PageBuilderService,
+    PopupService,
+    SectionSettingService,
+    SiteColorService,
+    SocialLinkService,
+    TestimonialService,
+    AttachRecordingsCommand,
+    YtCoursesService,
   ],
 })
 export class AdminModule {}

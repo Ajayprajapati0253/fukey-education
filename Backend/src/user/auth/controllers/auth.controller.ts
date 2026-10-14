@@ -8,6 +8,7 @@
     Req,
     UseGuards,
     Delete,
+    Patch,
     UnauthorizedException,
   } from '@nestjs/common';
   import { AuthService } from '../services/auth.service';
@@ -24,6 +25,7 @@
   import { FacebookAuthGuard } from '../guards/facebook-auth.guard';
   import { Res } from '@nestjs/common';
 import { FirebaseLoginDto } from '../dto/firebase-login.dto';
+import { UpdateProfileDto } from '../dto/update-profile.dto';
 
   @Controller('auth')
   export class AuthController {
@@ -155,5 +157,17 @@ async deleteAccount(@Req() req) {
   const { sub } = req.user;
 
   return this.authService.deleteAccount(BigInt(sub));
+}
+
+@Patch('profile')
+@UseGuards(JwtAuthGuard)
+async updateStudentProfile(
+  @Req() req: any,
+  @Body() dto: UpdateProfileDto,
+) {
+  return this.authService.updateStudentProfile(
+    req.user.sub,
+    dto,
+  );
 }
   }

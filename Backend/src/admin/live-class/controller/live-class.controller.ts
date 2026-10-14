@@ -42,11 +42,20 @@ async getKpi() {
     return this.liveClassService.create(dto);
   }
 
-    @Post('generate-recurring')
+  @Post('generate-recurring')
         async generateRecurring() {
-        return this.recurringLiveClassService
-            .generateRecurringLiveClasses();
+        return this.recurringLiveClassService.generateRecurringLiveClasses();
         }
+
+  @Get('recurring-generated')
+      async getGeneratedRecurringLiveClasses() {
+      return this.recurringLiveClassService.getGeneratedRecurringLiveClasses();
+    }
+
+    @Get('recurring-generated/:id')
+    async getGeneratedRecurringLiveClass(@Param('id', ParseIntPipe) id: number,) {
+    return this.recurringLiveClassService.getGeneratedRecurringLiveClass(id);
+}
 
   @Get(':id')
   async findOne(

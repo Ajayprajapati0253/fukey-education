@@ -8,7 +8,9 @@ export type BadgeVariant =
   | 'accent'
   | 'teal'
   | 'neutral'
-  | 'live';
+  | 'live'
+  | 'purple'
+  | 'info';
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   children: React.ReactNode;
@@ -37,6 +39,8 @@ export const Badge: React.FC<BadgeProps> = ({
     teal: 'bg-[#E4F5F3] text-[#0D9488] dark:bg-[#0D9488]/20 dark:text-[#2DD4BF]',
     neutral: 'bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-300',
     live: 'bg-[#E7F7ED] text-[#16A34A] dark:bg-[#16A34A]/20 dark:text-[#4ADE80] font-semibold',
+    purple: 'bg-[#F1EAFE] text-[#7C3AED] dark:bg-[#7C3AED]/20 dark:text-[#C084FC]',
+    info: 'bg-sky-50 text-sky-600 dark:bg-sky-500/20 dark:text-sky-300',
   };
 
   const dotColors: Record<BadgeVariant, string> = {
@@ -48,6 +52,8 @@ export const Badge: React.FC<BadgeProps> = ({
     teal: 'bg-[#0D9488]',
     neutral: 'bg-gray-500',
     live: 'bg-[#16A34A] animate-pulse',
+    purple: 'bg-[#7C3AED]',
+    info: 'bg-sky-500',
   };
 
   const sizeStyles = {

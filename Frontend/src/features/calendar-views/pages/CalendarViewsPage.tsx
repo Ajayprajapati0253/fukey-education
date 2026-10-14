@@ -22,7 +22,6 @@ export const CalendarViewsPage: React.FC = () => {
   const {
     classes,
     filteredClasses,
-    loading,
     currentTime,
     todayDateStr,
     selectedDate,
@@ -34,7 +33,6 @@ export const CalendarViewsPage: React.FC = () => {
     weeklyKPIs,
     weekDays,
     weekRangeLabel,
-    reminderLogs,
     toastMessage,
     // Modals
     createModalOpen,
@@ -231,6 +229,7 @@ export const CalendarViewsPage: React.FC = () => {
             onViewRecording={setRecordingModalItem}
             onEditClass={setEditModalItem}
             onTriggerReminder={handleTriggerRemindersNow}
+            onOpenCreateModal={() => setCreateModalOpen(true)}
           />
         </div>
 

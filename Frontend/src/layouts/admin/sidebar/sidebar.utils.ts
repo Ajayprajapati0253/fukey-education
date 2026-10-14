@@ -1,13 +1,32 @@
 import { SIDEBAR_GROUPS, type SidebarGroup, type SidebarItem } from './sidebar.config';
 
+// /**
+//  * Checks if a sidebar item matches the current active route.
+//  */
+// export function isRouteActive(itemRoute: string, currentPath: string): boolean {
+//   if (itemRoute === '/admin/dashboard' && (currentPath === '/admin' || currentPath === '/' || currentPath === '/admin/dashboard')) {
+//     return true;
+//   }
+//   return currentPath === itemRoute || currentPath.startsWith(`${itemRoute}/`);
+// }
+
 /**
  * Checks if a sidebar item matches the current active route.
  */
-export function isRouteActive(itemRoute: string, currentPath: string): boolean {
-  if (itemRoute === '/admin/dashboard' && (currentPath === '/admin' || currentPath === '/' || currentPath === '/admin/dashboard')) {
+export function isRouteActive(
+  itemRoute: string,
+  currentPath: string
+): boolean {
+  if (
+    itemRoute === '/admin/dashboard' &&
+    (currentPath === '/admin' ||
+      currentPath === '/' ||
+      currentPath === '/admin/dashboard')
+  ) {
     return true;
   }
-  return currentPath === itemRoute || currentPath.startsWith(`${itemRoute}/`);
+
+  return currentPath === itemRoute;
 }
 
 /**

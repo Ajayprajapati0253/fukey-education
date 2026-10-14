@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sun, Moon, Check, Monitor } from 'lucide-react';
+import { Sun, Moon, Check} from 'lucide-react';
 import { useUIStore } from '../../store/ui.store';
-import type { ThemeMode } from '../../store/ui.store';
+// import type { ThemeMode } from '../../store/ui.store';
 
 export interface ThemeSwitcherProps {
   /** Display variant: 'button' for one-click toggle, 'dropdown' for menu with choices */

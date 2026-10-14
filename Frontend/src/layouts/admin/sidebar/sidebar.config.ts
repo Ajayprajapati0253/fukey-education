@@ -88,14 +88,18 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         ],
       },
       {
-        id: 'free-courses',
-        label: 'Free courses',
+        id: 'manage-free-courses',
+        label: 'Manage Free Courses',
         icon: Book,
         route: '/admin/free-courses',
         children: [
-          { id: 'all-free-courses', label: 'all-free-courses', icon: Book, route: '/admin/free-courses/all-free-courses' },
-          { id: 'free-course-classes', label: 'Free-classes', icon: School, route: '/admin/free-courses/classes' },
-          { id: 'free-course-subjects', label: 'Free-subjects', icon: Tag, route: '/admin/free-courses/subjects' },
+          { id: 'free-courses', label: 'free-courses', icon: Book, route: '/admin/free-courses' },
+          { id: 'free-courses-categories', label: 'free-courses-categories', icon: Tags, route: '/admin/free-courses/categories' },
+          { id: 'free-course-languages', label: 'free-course-languages', icon: BookOpen, route: '/admin/free-courses/languages' },
+          { id: 'free-course-levels', label: 'free-course-levels', icon: Book, route: '/admin/free-courses/levels' },
+          { id: 'free-course-reviews', label: 'free-course-reviews', icon: Book, route: '/admin/free-courses/reviews' },
+          { id: 'free-course-delete-requests', label: 'free-course-delete-requests', icon: Book, route: '/admin/free-courses/delete-requests' },
+          
         ],
       },
       {
@@ -116,7 +120,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: LibraryBig,
         route: '/admin/study-materials',
         children: [
-          { id: 'study-materials', label: 'Study materials', icon: NotebookText, route: '/admin/study-materials' },
+          { id: 'study-materials-overview', label: 'Study materials', icon: NotebookText, route: '/admin/study-materials' },
           { id: 'notes', label: 'notes', icon: StickyNote, route: '/admin/study-materials/notes' },
           { id: 'practice-questions', label: 'practice-questions', icon: FileCheck, route: '/admin/study-materials/practice-questions' },
           { id: 'formula-sheets', label: 'Formula Sheets', icon: Sigma, route: '/admin/study-materials/formula-sheets' },

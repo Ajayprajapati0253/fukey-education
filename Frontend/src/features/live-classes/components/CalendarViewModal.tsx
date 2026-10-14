@@ -4,11 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
-  Video,
   Clock,
-  User,
-  Radio,
-  ExternalLink,
   Plus
 } from 'lucide-react';
 import type { LiveClass } from '../types/live-class.types';
@@ -316,4 +312,5 @@ export const CalendarViewModal: React.FC<CalendarViewModalProps> = ({
       </div>
     </div>
   );
+
 };

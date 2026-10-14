@@ -2,18 +2,29 @@ import React, { forwardRef } from 'react';
 import { Loader2 } from 'lucide-react';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'warning';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
   fullWidth?: boolean;
+  icon?: React.ReactNode;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { children, variant = 'primary', size = 'md', isLoading = false, fullWidth = false, disabled, className = '', ...props },
+    {
+      children,
+      variant = 'primary',
+      size = 'md',
+      isLoading = false,
+      fullWidth = false,
+      icon,
+      disabled,
+      className = '',
+      ...props
+    },
     ref
   ) => {
     const variantStyles: Record<ButtonVariant, string> = {
@@ -29,6 +40,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizeStyles: Record<ButtonSize, string> = {
+      xs: 'text-[11px] px-2.5 py-1 gap-1',
       sm: 'text-xs px-3 py-1.5 gap-1.5',
       md: 'text-sm px-4 py-2 gap-2',
       lg: 'text-base px-5 py-2.5 gap-2',
@@ -42,6 +54,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+        {!isLoading && icon}
         {children}
       </button>
     );

@@ -4,8 +4,7 @@ import {
   MapPin,
   FileText,
   Share2,
-  Linkedin,
-  Youtube,
+  Video,
   Code2,
   Clock,
   ExternalLink,
@@ -13,7 +12,7 @@ import {
   X,
   GraduationCap,
   Radio,
-  Globe
+  Globe,
 } from 'lucide-react';
 import type { Instructor, SocialLinks } from '../types/instructor';
 
@@ -495,7 +494,7 @@ export function InstructorProfileTab({
             </label>
             <div className="relative flex items-center">
               <div className="absolute left-3 text-blue-500">
-                <Linkedin className="w-4 h-4" />
+                <ExternalLink className="w-4 h-4" />
               </div>
               <input
                 type="text"
@@ -524,7 +523,7 @@ export function InstructorProfileTab({
             </label>
             <div className="relative flex items-center">
               <div className="absolute left-3 text-rose-500">
-                <Youtube className="w-4 h-4" />
+                <Video className="w-4 h-4" />
               </div>
               <input
                 type="text"

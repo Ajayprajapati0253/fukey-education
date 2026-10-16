@@ -22,3 +22,5 @@ Thumbs.db
 # Firebase / Google Cloud credentials
 Backend/src/firebase/*.json
 Backend/src/firebase/fukeyeducationlms-4be5851e8ca4.json
+
+Backend/config/firebase-service-account.json

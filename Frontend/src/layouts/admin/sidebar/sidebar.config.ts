@@ -78,13 +78,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     items: [
       {
         id: 'manage-courses',
-        label: 'Manage courses',
+        label: 'Manage Courses',
         icon: BookOpen,
         route: '/admin/courses',
         children: [
           { id: 'all-courses', label: 'All Courses', icon: BookOpen, route: '/admin/courses/all-courses' },
           { id: 'course-classes', label: 'Classes', icon: School, route: '/admin/courses/classes' },
-          { id: 'course-subjects', label: 'subjects', icon: Tag, route: '/admin/courses/subjects' },
+          { id: 'course-subjects', label: 'Subjects', icon: Tag, route: '/admin/courses/subjects' },
+          { id: 'course-medium', label: 'Medium', icon: BookOpen, route: '/admin/courses/medium' },
         ],
       },
       {
@@ -93,22 +94,24 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: Book,
         route: '/admin/free-courses',
         children: [
-          { id: 'free-courses', label: 'free-courses', icon: Book, route: '/admin/free-courses' },
-          { id: 'free-courses-categories', label: 'free-courses-categories', icon: Tags, route: '/admin/free-courses/categories' },
-          { id: 'free-course-languages', label: 'free-course-languages', icon: BookOpen, route: '/admin/free-courses/languages' },
-          { id: 'free-course-levels', label: 'free-course-levels', icon: Book, route: '/admin/free-courses/levels' },
-          { id: 'free-course-reviews', label: 'free-course-reviews', icon: Book, route: '/admin/free-courses/reviews' },
-          { id: 'free-course-delete-requests', label: 'free-course-delete-requests', icon: Book, route: '/admin/free-courses/delete-requests' },
-          
+          { id: 'all-free-courses', label: 'All Courses', icon: Book, route: '/admin/free-courses/all-free-courses' },
+          { id: 'free-course-classes', label: 'Classes', icon: Book, route: '/admin/free-courses/classes' },
+          { id: 'free-course-subjects', label: 'Subjects', icon: Book, route: '/admin/free-courses/subjects' },
+          { id: 'free-course-medium', label: 'Medium', icon: BookOpen, route: '/admin/free-courses/medium' },
+          { id: 'free-courses-categories', label: 'Categories', icon: Tags, route: '/admin/free-courses/categories' },
+          { id: 'free-course-languages', label: 'Languages', icon: BookOpen, route: '/admin/free-courses/languages' },
+          { id: 'free-course-levels', label: 'Levels', icon: Book, route: '/admin/free-courses/levels' },
+          { id: 'free-course-reviews', label: 'Reviews', icon: Book, route: '/admin/free-courses/reviews' },
+          { id: 'free-course-delete-requests', label: 'Delete Requests', icon: Book, route: '/admin/free-courses/delete-requests' }
         ],
       },
       {
         id: 'live-classes',
-        label: 'Live classes',
+        label: 'Live Classes',
         icon: Radio,
         route: '/admin/live-classes',
         children: [
-          { id: 'live-classes', label: 'Live-classes', icon: Radio, route: '/admin/live-classes' },
+          { id: 'live-classes-list', label: 'Live Classes', icon: Radio, route: '/admin/live-classes' },
           { id: 'calender-views', label: 'Calendar Views', icon: CalendarDays, route: '/admin/live-classes/calendar-views' },
           { id: 'attendance', label: 'Attendance', icon: ClipboardCheck, route: '/admin/live-classes/attendance' },
           { id: 'recordings', label: 'Recordings', icon: Video, route: '/admin/live-classes/recordings' },
@@ -116,15 +119,15 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       },
       {
         id: 'study-materials',
-        label: 'Study materials',
+        label: 'Study Materials',
         icon: LibraryBig,
         route: '/admin/study-materials',
         children: [
-          { id: 'study-materials-overview', label: 'Study materials', icon: NotebookText, route: '/admin/study-materials' },
-          { id: 'notes', label: 'notes', icon: StickyNote, route: '/admin/study-materials/notes' },
-          { id: 'practice-questions', label: 'practice-questions', icon: FileCheck, route: '/admin/study-materials/practice-questions' },
+          { id: 'study-materials-overview', label: 'Overview', icon: NotebookText, route: '/admin/study-materials' },
+          { id: 'notes', label: 'Notes', icon: StickyNote, route: '/admin/study-materials/notes' },
+          { id: 'practice-questions', label: 'Practice Questions', icon: FileCheck, route: '/admin/study-materials/practice-questions' },
           { id: 'formula-sheets', label: 'Formula Sheets', icon: Sigma, route: '/admin/study-materials/formula-sheets' },
-          { id: 'mcq', label: 'Mcq', icon: ListTodo, route: '/admin/study-materials/mcq' },
+          { id: 'mcq', label: 'MCQ', icon: ListTodo, route: '/admin/study-materials/mcq' },
           { id: 'important-questions', label: 'Important Questions', icon: Sparkles, route: '/admin/study-materials/important-questions' },
           { id: 'sample-papers', label: 'Sample Papers', icon: FileText, route: '/admin/study-materials/sample-papers' },
           { id: 'test-series', label: 'Test Series', icon: Layers, route: '/admin/study-materials/test-series' },
@@ -169,19 +172,19 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     items: [
       {
         id: 'manage-order',
-        label: 'Manage order',
+        label: 'Manage Order',
         icon: ShoppingCart,
         route: '/admin/orders',
       },
       {
         id: 'manage-coupon',
-        label: 'Manage coupon',
+        label: 'Manage Coupon',
         icon: Ticket,
         route: '/admin/coupons',
       },
       {
         id: 'withdraw-payment',
-        label: 'Withdraw payment',
+        label: 'Withdraw Payment',
         icon: ArrowLeftRight,
         route: '/admin/withdrawals',
       },
@@ -193,13 +196,13 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     items: [
       {
         id: 'instructor-requests',
-        label: 'Instructor requests',
+        label: 'Instructor Requests',
         icon: UserPlus,
         route: '/admin/instructor-requests',
       },
       {
         id: 'manage-users',
-        label: 'Manage users',
+        label: 'Manage Users',
         icon: Users,
         route: '/admin/users',
         children: [
@@ -237,25 +240,25 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       },
       {
         id: 'footer-setting',
-        label: 'Footer setting',
+        label: 'Footer Setting',
         icon: PanelBottom,
         route: '/admin/footer-settings',
       },
       {
         id: 'menu-builder',
-        label: 'Menu builder',
+        label: 'Menu Builder',
         icon: MenuIcon,
         route: '/admin/menu-builder',
       },
       {
         id: 'page-builder',
-        label: 'Page builder',
+        label: 'Page Builder',
         icon: PanelsTopLeft,
         route: '/admin/page-builder',
       },
       {
         id: 'social-links',
-        label: 'Social links',
+        label: 'Social Links',
         icon: Share2,
         route: '/admin/social-links',
       },

@@ -13,18 +13,30 @@ import { DemoClassService } from './demo-class/services/demo-class.service';
 import { DemoClassController } from './demo-class/controller/demo-class.controller';
 import { EbookService } from './ebook/services/ebook.service';
 import { EbookController } from './ebook/controller/ebook.controller';
+import { StudentLiveClassController } from './live-class/controller/student-live-class.controller';
+import { StudentLiveClassService } from './live-class/services/student-live-class.service';
+import { JitsiService } from 'src/admin/live-class/services/jitsi.service';
+import { StudentStudyMaterialController } from './study-material/controller/student-study-material.controller';
+import { StudentStudyMaterialService } from './study-material/services/student-study-material.service';
+import { StudentOnlineTestController } from './online-test/controller/student-online-test.controller';
+import { StudentOnlineTestService } from './online-test/services/student-online-test.service';
+import { YtCoursesController } from './yt-courses/controller/yt-courses.controller';
+import { YtCoursesService } from './yt-courses/services/yt-courses.service';
 
 
 @Module({
   controllers: [
     AiController,
-    CartController,
     CareerApplicationController,
     CartController,
     CourseController,
     DemoFilterController,
     DemoClassController,
-    EbookController
+    EbookController,
+    StudentLiveClassController,
+    StudentStudyMaterialController,
+    StudentOnlineTestController,
+    YtCoursesController
 
 
   ],
@@ -36,7 +48,12 @@ import { EbookController } from './ebook/controller/ebook.controller';
     CareerApplicationService,
     CourseService,
     DemoClassService,
-    EbookService
+    EbookService,
+    StudentLiveClassService,
+    JitsiService,
+    StudentStudyMaterialService,
+    StudentOnlineTestService,
+    YtCoursesService,
   ],
 
   exports: [

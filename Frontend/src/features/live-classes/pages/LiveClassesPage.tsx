@@ -43,17 +43,40 @@ const LiveClassesPage: React.FC = () => {
   const [joiningClass, setJoiningClass] = useState<LiveClass | null>(null);
   const [recordingClass, setRecordingClass] = useState<LiveClass | null>(null);
 
-  const handleCopyLink = (link: string) => {
-    navigator.clipboard.writeText(link);
-    // TODO: swap this alert() for the app's shared Toast component once
-    // Live Classes is wired into the same toast/notification system as
-    // Blogs / Courses.
-    alert('Meeting link copied to clipboard!');
+  const handleCopyLink = async (link: string) => {
+    if (!link) {
+      alert('Meeting link is not available.');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(link);
+      alert('Meeting link copied to clipboard!');
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+      alert('Failed to copy meeting link.');
+    }
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this live class? This action cannot be undone.')) {
-      deleteClass(id);
+  const handleDelete = async (id: string) => {
+    if (
+      !confirm(
+        'Are you sure you want to delete this live class? This action cannot be undone.',
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteClass(id);
+    } catch (error) {
+      console.error('Failed to delete live class:', error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Failed to delete live class.',
+      );
     }
   };
 
